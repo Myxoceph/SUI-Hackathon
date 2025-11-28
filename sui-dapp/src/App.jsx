@@ -6,22 +6,18 @@ import AddContribution from "@/pages/AddContribution";
 import Explore from "@/pages/Explore";
 import { Toaster } from "@/components/ui/sonner";
 
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/passport" element={<Passport />} />
-            <Route path="/contribute" element={<AddContribution />} />
-            <Route path="/explore" element={<Explore />} />
-          </Routes>
-        </Layout>
-        <Toaster />
-      </BrowserRouter>
-    </div>
-  );
-}
+const App = () => (
+  <BrowserRouter>
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/passport" element={<Passport />} />
+        <Route path="/contribute" element={<AddContribution />} />
+        <Route path="/explore" element={<Explore />} />
+      </Routes>
+    </Layout>
+    <Toaster />
+  </BrowserRouter>
+);
 
 export default App;

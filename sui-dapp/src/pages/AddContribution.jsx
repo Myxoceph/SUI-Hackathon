@@ -4,9 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import SuccessScreen from "@/components/SuccessScreen";
+import { CONTRIBUTION_TYPES } from "@/constants/forms";
 
 const AddContribution = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -15,34 +17,14 @@ const AddContribution = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
     setIsSubmitting(false);
     setIsSuccess(true);
     toast.success("Contribution submitted to the blockchain!");
   };
 
   if (isSuccess) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
-        <div className="h-20 w-20 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/20">
-          <CheckCircle2 className="h-10 w-10 text-green-500" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold font-sans">Submission Verified</h2>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Your contribution has been hashed and recorded on the Sui blockchain. 
-            Transaction ID: <span className="font-mono text-primary">0x8f...3k9</span>
-          </p>
-        </div>
-        <div className="flex gap-4">
-          <Button onClick={() => setIsSuccess(false)} variant="outline">Submit Another</Button>
-          <Button>View on Explorer</Button>
-        </div>
-      </div>
-    );
+    return <SuccessScreen onReset={() => setIsSuccess(false)} />;
   }
 
   return (
@@ -64,10 +46,9 @@ const AddContribution = () => {
                   <SelectValue placeholder="Select type..." />
                 </SelectTrigger>
                 <SelectContent className="rounded-none border-border">
-                  <SelectItem value="code">Code / Pull Request</SelectItem>
-                  <SelectItem value="design">Design / UI/UX</SelectItem>
-                  <SelectItem value="content">Content / Documentation</SelectItem>
-                  <SelectItem value="event">Event / Hackathon</SelectItem>
+                  {CONTRIBUTION_TYPES.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

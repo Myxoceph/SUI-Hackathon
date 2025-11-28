@@ -1,11 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, ThumbsUp } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Search, Filter } from "lucide-react";
 import { toast } from "sonner";
+import ProjectCard from "@/components/ProjectCard";
+
+const MOCK_PROJECTS = Array(6).fill({
+  badge: "DEV TOOL",
+  title: "Sui Move Analyzer v2.0",
+  description: "A static analysis tool for Move smart contracts that detects common vulnerabilities and gas inefficiencies before deployment.",
+  author: "0x2a...9f",
+  time: "2h ago",
+});
 
 const Explore = () => {
-  const handleEndorse = (id) => {
+  const handleEndorse = () => {
     toast.success("Contribution endorsed!", {
       description: "Transaction submitted to Sui network.",
     });
@@ -35,40 +43,8 @@ const Explore = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="group border border-border bg-card hover:border-primary/50 transition-colors p-6 space-y-4 flex flex-col">
-            <div className="flex justify-between items-start">
-              <Badge variant="outline" className="rounded-none font-mono text-xs">
-                DEV TOOL
-              </Badge>
-              <span className="text-xs font-mono text-muted-foreground">2h ago</span>
-            </div>
-            
-            <div className="space-y-2 flex-1">
-              <h3 className="font-bold text-lg font-sans group-hover:text-primary transition-colors">
-                Sui Move Analyzer v2.0
-              </h3>
-              <p className="text-sm text-muted-foreground line-clamp-3">
-                A static analysis tool for Move smart contracts that detects common vulnerabilities and gas inefficiencies before deployment.
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-6 w-6 bg-muted rounded-full border border-border" />
-                <span className="text-xs font-mono">0x2a...9f</span>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 text-xs font-mono hover:bg-primary hover:text-primary-foreground gap-2"
-                onClick={() => handleEndorse(i)}
-              >
-                <ThumbsUp className="h-3 w-3" />
-                ENDORSE
-              </Button>
-            </div>
-          </div>
+        {MOCK_PROJECTS.map((project, i) => (
+          <ProjectCard key={i} {...project} onEndorse={handleEndorse} />
         ))}
       </div>
     </div>
