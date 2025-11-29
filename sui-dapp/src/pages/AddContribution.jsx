@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,22 +10,51 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import SuccessScreen from "@/components/SuccessScreen";
 import { CONTRIBUTION_TYPES } from "@/constants/forms";
+import { useSuiTransaction } from "@/hooks/useSuiTransaction";
 
 const AddContribution = () => {
+  const account = useCurrentAccount();
+  const { submitContribution } = useSuiTransaction();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [formData, setFormData] = useState({
+    type: '',
+    title: '',
+    description: '',
+    proof: '',
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!account) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    toast.success("Contribution submitted to the blockchain!");
+    
+    try {
+      await submitContribution(formData);
+      setIsSuccess(true);
+    } catch (error) {
+      console.error("Submission failed:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSuccess) {
     return <SuccessScreen onReset={() => setIsSuccess(false)} />;
+  }
+
+  if (!account) {
+    return (
+      <div className="max-w-2xl mx-auto text-center space-y-4 py-20">
+        <h2 className="text-2xl font-bold font-sans">Connect Your Wallet</h2>
+        <p className="text-muted-foreground">Please connect your Sui wallet to submit contributions.</p>
+      </div>
+    );
   }
 
   return (
@@ -41,7 +71,11 @@ const AddContribution = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="type" className="font-mono uppercase text-xs">Contribution Type</Label>
-              <Select required>
+              <Select 
+                required 
+                value={formData.type}
+                onValueChange={(value) => setFormData({...formData, type: value})}
+              >
                 <SelectTrigger className="rounded-none border-border bg-background">
                   <SelectValue placeholder="Select type..." />
                 </SelectTrigger>
@@ -56,7 +90,9 @@ const AddContribution = () => {
             <div className="space-y-2">
               <Label htmlFor="title" className="font-mono uppercase text-xs">Project Name / Title</Label>
               <Input 
-                id="title" 
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
                 placeholder="e.g. Implemented Staking Module" 
                 className="rounded-none border-border bg-background"
                 required
@@ -66,7 +102,9 @@ const AddContribution = () => {
             <div className="space-y-2">
               <Label htmlFor="description" className="font-mono uppercase text-xs">Description</Label>
               <Textarea 
-                id="description" 
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
                 placeholder="Describe what you built, the technologies used, and the impact..." 
                 className="rounded-none border-border bg-background min-h-[120px]"
                 required
@@ -76,7 +114,9 @@ const AddContribution = () => {
             <div className="space-y-2">
               <Label htmlFor="proof" className="font-mono uppercase text-xs">Proof Link (Github, Figma, etc)</Label>
               <Input 
-                id="proof" 
+                id="proof"
+                value={formData.proof}
+                onChange={(e) => setFormData({...formData, proof: e.target.value})}
                 type="url"
                 placeholder="https://github.com/..." 
                 className="rounded-none border-border bg-background"
@@ -100,7 +140,7 @@ const AddContribution = () => {
                 )}
               </Button>
               <p className="text-xs text-center text-muted-foreground mt-4 font-mono">
-                Gas Fee: ~0.002 SUI
+                Connected: {account.address.slice(0, 6)}...{account.address.slice(-4)}
               </p>
             </div>
           </form>
