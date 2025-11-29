@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Wallet, Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
+import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, APP_NAME } from "@/constants/navigation";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [walletAddress, setWalletAddress] = useState(null);
+  const account = useCurrentAccount();
 
-  const connectWallet = () => setWalletAddress("0x71C...9A2");
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -46,14 +45,7 @@ const Navbar = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-4">
-          <Button 
-            variant={walletAddress ? "outline" : "default"}
-            onClick={connectWallet}
-            className="font-mono text-xs h-9"
-          >
-            <Wallet className="mr-2 h-4 w-4" />
-            {walletAddress || "CONNECT WALLET"}
-          </Button>
+          <ConnectButton className="font-mono text-xs" />
           
           <button className="md:hidden p-2" onClick={toggleMenu}>
             {isMenuOpen ? <X /> : <Menu />}

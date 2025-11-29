@@ -3,17 +3,61 @@ import { Input } from "@/components/ui/input";
 import { Search, Filter } from "lucide-react";
 import { toast } from "sonner";
 import ProjectCard from "@/components/ProjectCard";
+import { useWallet } from "@/contexts/WalletContext";
 
-const MOCK_PROJECTS = Array(6).fill({
-  badge: "DEV TOOL",
-  title: "Sui Move Analyzer v2.0",
-  description: "A static analysis tool for Move smart contracts that detects common vulnerabilities and gas inefficiencies before deployment.",
-  author: "0x2a...9f",
-  time: "2h ago",
-});
+const MOCK_PROJECTS = [
+  {
+    badge: "DEV TOOL",
+    title: "Sui Move Analyzer v2.0",
+    description: "A static analysis tool for Move smart contracts that detects common vulnerabilities and gas inefficiencies before deployment.",
+    author: "alice_dev",
+    time: "2h ago",
+  },
+  {
+    badge: "DEFI",
+    title: "Decentralized Lending Protocol",
+    description: "Undercollateralized loans using on-chain reputation scores and peer endorsements.",
+    author: "bob_builder",
+    time: "5h ago",
+  },
+  {
+    badge: "NFT",
+    title: "Dynamic NFT Collections",
+    description: "NFTs that evolve based on user contributions and community endorsements.",
+    author: "carol_artist",
+    time: "1d ago",
+  },
+  {
+    badge: "DOCUMENTATION",
+    title: "Move Language Tutorial",
+    description: "Comprehensive guide for Move smart contract development on Sui.",
+    author: "dev_master",
+    time: "2d ago",
+  },
+  {
+    badge: "INFRASTRUCTURE",
+    title: "Sui RPC Node Setup",
+    description: "Automated deployment scripts for running Sui validator nodes.",
+    author: "node_runner",
+    time: "3d ago",
+  },
+  {
+    badge: "GAMING",
+    title: "On-Chain Multiplayer Game",
+    description: "Real-time strategy game with provably fair mechanics on Sui blockchain.",
+    author: "game_dev_42",
+    time: "1w ago",
+  },
+];
 
 const Explore = () => {
+  const { isConnected } = useWallet();
+
   const handleEndorse = () => {
+    if (!isConnected) {
+      toast.error("Please connect your wallet to endorse!");
+      return;
+    }
     toast.success("Contribution endorsed!", {
       description: "Transaction submitted to Sui network.",
     });
