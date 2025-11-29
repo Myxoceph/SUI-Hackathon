@@ -1,6 +1,6 @@
 #[test_only]
-module trustchain::contribution_tests {
-    use trustchain::contribution::{Self, Contribution, ContributionRegistry};
+module peerflow::contribution_tests {
+    use peerflow::contribution::{Self, Contribution, ContributionRegistry};
     use sui::test_scenario::{Self as ts, Scenario};
     use std::string;
 

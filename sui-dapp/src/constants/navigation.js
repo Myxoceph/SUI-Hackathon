@@ -8,5 +8,5 @@ export const NAV_ITEMS = [
   { path: "/settings", label: "SETTINGS", icon: SettingsIcon },
 ];
 
-export const APP_NAME = "TrustChain";
+export const APP_NAME = "PeerFlow";
 export const APP_VERSION = "v0.1.0-alpha";

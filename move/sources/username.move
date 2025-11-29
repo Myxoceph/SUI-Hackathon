@@ -1,15 +1,20 @@
 /// TrustChain Username Registry Module
 /// Manages unique username registration linked to wallet addresses
-module trustchain::username {
+module peerflow::username {
     use std::string::String;
     use sui::table::{Self, Table};
     use sui::event;
+    use sui::package;
+    use sui::display;
+
+    // ==================== One-Time-Witness ====================
+    
+    /// One-Time-Witness for Display creation
+    public struct USERNAME has drop {}
 
     // ==================== Error Codes ====================
     
     const EUsernameTaken: u64 = 1;
-    const EUsernameAlreadySet: u64 = 2;
-    const EInvalidUsername: u64 = 3;
 
     // ==================== Structs ====================
 
@@ -38,18 +43,43 @@ module trustchain::username {
 
     // ==================== Init ====================
 
-    fun init(ctx: &mut TxContext) {
+    fun init(otw: USERNAME, ctx: &mut TxContext) {
+        // Create shared registry
         let registry = UsernameRegistry {
             id: object::new(ctx),
             usernames: table::new(ctx),
             total_users: 0,
         };
         transfer::share_object(registry);
+
+        // Setup Display for Profile NFT visualization
+        let publisher = package::claim(otw, ctx);
+        let mut display = display::new<UserProfile>(&publisher, ctx);
+        
+        // Define how User Profiles appear in wallets/explorers
+        display.add(
+            b"name".to_string(),
+            b"@{username}".to_string()
+        );
+        display.add(
+            b"description".to_string(),
+            b"42 Student Profile - Soulbound Identity".to_string()
+        );
+        display.add(
+            b"image_url".to_string(),
+            b"https://api.dicebear.com/7.x/avataaars/svg?seed={username}".to_string()
+        );
+        
+        display.update_version();
+
+        transfer::public_transfer(publisher, ctx.sender());
+        transfer::public_transfer(display, ctx.sender());
     }
 
     // ==================== Core Functions ====================
 
     /// Register a new username (one per address)
+    #[allow(lint(public_entry))]
     public entry fun register_username(
         registry: &mut UsernameRegistry,
         username: String,
@@ -110,6 +140,7 @@ module trustchain::username {
 
     #[test_only]
     public fun init_for_testing(ctx: &mut TxContext) {
-        init(ctx);
+        let otw = USERNAME {};
+        init(otw, ctx);
     }
 }

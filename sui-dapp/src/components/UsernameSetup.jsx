@@ -81,7 +81,7 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
       <Card className="w-full max-w-md border-border bg-card">
         <CardContent className="pt-6 space-y-6">
           <div className="space-y-2 text-center">
-            <h2 className="text-2xl font-bold font-sans">Welcome to TrustChain</h2>
+            <h2 className="text-2xl font-bold font-sans">Welcome to PeerFlow</h2>
             <p className="text-sm text-muted-foreground font-mono">
               Choose a username to get started
             </p>

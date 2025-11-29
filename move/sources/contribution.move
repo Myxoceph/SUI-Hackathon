@@ -1,13 +1,19 @@
 /// TrustChain Contribution Passport - Core Module
 /// Manages on-chain contribution records and endorsements
-module trustchain::contribution {
+module peerflow::contribution {
     use std::string::String;
     use sui::event;
     use sui::table::{Self, Table};
+    use sui::package;
+    use sui::display;
+
+    // ==================== One-Time-Witness ====================
+    
+    /// One-Time-Witness for Display creation
+    public struct CONTRIBUTION has drop {}
 
     // ==================== Error Codes ====================
     
-    const ENotOwner: u64 = 1;
     const EAlreadyEndorsed: u64 = 2;
     const ESelfEndorsement: u64 = 3;
 
@@ -64,8 +70,9 @@ module trustchain::contribution {
 
     // ==================== Init ====================
 
-    /// Initialize the shared registry on module publish
-    fun init(ctx: &mut TxContext) {
+    /// Initialize the shared registry and Display on module publish
+    fun init(otw: CONTRIBUTION, ctx: &mut TxContext) {
+        // Create shared registry
         let registry = ContributionRegistry {
             id: object::new(ctx),
             total_contributions: 0,
@@ -74,11 +81,51 @@ module trustchain::contribution {
             endorsers: table::new(ctx),
         };
         transfer::share_object(registry);
+
+        // Setup Display for NFT visualization
+        let publisher = package::claim(otw, ctx);
+        let mut display = display::new<Contribution>(&publisher, ctx);
+        
+        // Define how Contributions appear in wallets/explorers
+        display.add(
+            b"name".to_string(),
+            b"{title}".to_string()
+        );
+        display.add(
+            b"description".to_string(),
+            b"{description}".to_string()
+        );
+        display.add(
+            b"image_url".to_string(),
+            b"https://api.dicebear.com/7.x/shapes/svg?seed={title}".to_string()
+        );
+        display.add(
+            b"project_url".to_string(),
+            b"{proof_link}".to_string()
+        );
+        display.add(
+            b"creator".to_string(),
+            b"PeerFlow - 42 Global".to_string()
+        );
+        display.add(
+            b"type".to_string(),
+            b"{contribution_type}".to_string()
+        );
+        display.add(
+            b"endorsements".to_string(),
+            b"{endorsements}".to_string()
+        );
+        
+        display.update_version();
+
+        transfer::public_transfer(publisher, ctx.sender());
+        transfer::public_transfer(display, ctx.sender());
     }
 
     // ==================== Core Functions ====================
 
     /// Create a new contribution record
+    #[allow(lint(public_entry))]
     public entry fun mint_contribution(
         registry: &mut ContributionRegistry,
         contribution_type: String,
@@ -127,6 +174,7 @@ module trustchain::contribution {
 
     /// Endorse a contribution (must be different user)
     /// Now uses contribution_id and owner instead of mutable reference
+    #[allow(lint(public_entry))]
     public entry fun endorse_contribution(
         registry: &mut ContributionRegistry,
         contribution_id: ID,
@@ -217,6 +265,7 @@ module trustchain::contribution {
 
     #[test_only]
     public fun init_for_testing(ctx: &mut TxContext) {
-        init(ctx);
+        let otw = CONTRIBUTION {};
+        init(otw, ctx);
     }
 }
