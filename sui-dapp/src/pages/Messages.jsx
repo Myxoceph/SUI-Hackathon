@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, Plus, Search, Loader2, Users, ArrowLeft } from "lucide-react";
+import { MessageSquare, Plus, Search, Loader2, Users, ArrowLeft, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,17 @@ const Messages = () => {
       loadConversations();
     }
   }, [isConnected, loadConversations]);
+
+  // Adres rengini belirle (tutarlı renk)
+  const getAddressColor = (addr) => {
+    if (!addr) return "bg-gray-500";
+    const colors = [
+      "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-pink-500",
+      "bg-indigo-500", "bg-teal-500", "bg-orange-500", "bg-cyan-500"
+    ];
+    const hash = addr.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
+  };
 
   // Yeni konuşma başlat
   const handleStartNewChat = () => {
@@ -67,21 +78,28 @@ const Messages = () => {
     );
   }
 
-  // Aktif sohbet varsa
+  // Aktif sohbet varsa - tam ekran chatbox
   if (selectedRecipient) {
     return (
       <div className="container max-w-4xl mx-auto py-4 px-4 h-[calc(100vh-8rem)]">
-        <Card className="h-full flex flex-col">
-          <CardHeader className="py-3 px-4 border-b">
-            <div className="flex items-center gap-4">
+        <Card className="h-full flex flex-col overflow-hidden shadow-lg">
+          <CardHeader className="py-3 px-4 border-b flex-shrink-0 bg-card">
+            <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSelectedRecipient(null)}
+                className="h-8 w-8"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <CardTitle className="text-lg">Sohbet</CardTitle>
+              <div className={cn("h-9 w-9 rounded-full flex items-center justify-center text-white", getAddressColor(selectedRecipient))}>
+                <User className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base truncate">{formatAddress(selectedRecipient)}</CardTitle>
+                <p className="text-xs text-muted-foreground truncate font-mono">{selectedRecipient}</p>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="flex-1 p-0 overflow-hidden">
@@ -108,15 +126,15 @@ const Messages = () => {
             SUI blockchain üzerinde güvenli mesajlaşma
           </p>
         </div>
-        <Button onClick={() => setShowNewChat(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={() => setShowNewChat(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
           Yeni Sohbet
         </Button>
       </div>
 
       {/* New Chat Modal */}
       {showNewChat && (
-        <Card className="mb-6 border-primary">
+        <Card className="mb-6 border-primary shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -130,6 +148,7 @@ const Messages = () => {
                 onChange={(e) => setNewRecipientAddress(e.target.value)}
                 placeholder="Alıcı SUI adresi (0x...)"
                 className="font-mono text-sm"
+                onKeyPress={(e) => e.key === "Enter" && handleStartNewChat()}
               />
               <Button onClick={handleStartNewChat}>
                 Başlat
@@ -165,10 +184,12 @@ const Messages = () => {
         ) : conversations.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-2">Henüz konuşma yok</p>
-              <p className="text-xs text-muted-foreground text-center">
-                "Yeni Sohbet" butonuna tıklayarak ilk mesajınızı gönderin.
+              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                <MessageSquare className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground font-medium mb-2">Henüz konuşma yok</p>
+              <p className="text-xs text-muted-foreground text-center max-w-sm">
+                "Yeni Sohbet" butonuna tıklayarak bir SUI adresine mesaj gönderebilirsiniz.
               </p>
             </CardContent>
           </Card>
@@ -181,30 +202,47 @@ const Messages = () => {
             })
             .map((conversation, index) => {
               const otherParticipant = conversation.participants?.find(p => p !== address);
+              const lastMsg = conversation.lastMessage;
+              const isLastMsgOwn = lastMsg?.sender === address;
               
               return (
                 <Card
                   key={conversation.id || index}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  className="cursor-pointer hover:bg-muted/50 hover:shadow-md transition-all"
                   onClick={() => setSelectedRecipient(otherParticipant)}
                 >
                   <CardContent className="flex items-center gap-4 py-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <MessageSquare className="h-5 w-5 text-primary" />
+                    {/* Avatar */}
+                    <div className={cn("h-12 w-12 rounded-full flex items-center justify-center text-white flex-shrink-0", getAddressColor(otherParticipant))}>
+                      <User className="h-6 w-6" />
                     </div>
+                    
+                    {/* İçerik */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
-                        {formatAddress(otherParticipant)}
-                      </p>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-semibold truncate">
+                          {formatAddress(otherParticipant)}
+                        </p>
+                        {lastMsg?.timestamp && (
+                          <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
+                            {new Date(lastMsg.timestamp).toLocaleDateString("tr-TR", {
+                              day: "numeric",
+                              month: "short",
+                            })}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground truncate">
-                        {conversation.lastMessage?.content || "Konuşmayı başlat..."}
+                        {lastMsg ? (
+                          <>
+                            {isLastMsgOwn && <span className="text-primary">Siz: </span>}
+                            {lastMsg.content}
+                          </>
+                        ) : (
+                          <span className="italic">Konuşmayı başlat...</span>
+                        )}
                       </p>
                     </div>
-                    {conversation.lastMessage?.timestamp && (
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(conversation.lastMessage.timestamp).toLocaleDateString("tr-TR")}
-                      </span>
-                    )}
                   </CardContent>
                 </Card>
               );
@@ -213,8 +251,10 @@ const Messages = () => {
       </div>
 
       {/* Info Footer */}
-      <div className="mt-8 p-4 bg-muted/50 rounded-lg">
-        <h4 className="font-medium text-sm mb-2">🔐 On-Chain Mesajlaşma</h4>
+      <div className="mt-8 p-4 bg-muted/50 rounded-lg border">
+        <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+          🔐 On-Chain Mesajlaşma
+        </h4>
         <ul className="text-xs text-muted-foreground space-y-1">
           <li>• Tüm mesajlar SUI blockchain üzerinde saklanır</li>
           <li>• Mesaj göndermek için gas ücreti gerekir</li>
