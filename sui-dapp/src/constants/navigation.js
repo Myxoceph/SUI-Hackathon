@@ -1,4 +1,4 @@
-import { Terminal, User, Plus, Globe, Trophy, Settings as SettingsIcon } from "lucide-react";
+import { Terminal, User, Plus, Globe, Trophy, Settings as SettingsIcon, MessageSquare } from "lucide-react";
 
 export const NAV_ITEMS = [
   { path: "/", label: "HOME", icon: Terminal },
@@ -6,6 +6,7 @@ export const NAV_ITEMS = [
   { path: "/contribute", label: "CONTRIBUTE", icon: Plus },
   { path: "/explore", label: "EXPLORE", icon: Globe },
   { path: "/leaderboard", label: "LEADERBOARD", icon: Trophy },
+  { path: "/messages", label: "MESSAGES", icon: MessageSquare },
   { path: "/settings", label: "SETTINGS", icon: SettingsIcon },
 ];
 

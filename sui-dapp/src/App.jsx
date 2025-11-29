@@ -14,6 +14,8 @@ import AuthCallback from "@/pages/AuthCallback";
 import RegisterEnokiWallets from "@/components/RegisterEnokiWallets";
 import UsernameSetup from "@/components/UsernameSetup";
 import { Toaster } from "@/components/ui/sonner";
+import { MessagingProvider } from "@/contexts/MessagingContext";
+import Messages from "@/pages/Messages";
 import "@mysten/dapp-kit/dist/index.css";
 
 const queryClient = new QueryClient({
@@ -42,6 +44,7 @@ const AppContent = () => {
               <Route path="/contribute" element={<CreateProject />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </Layout>
@@ -67,9 +70,11 @@ const App = () => (
       <RegisterEnokiWallets />
       <WalletProvider autoConnect>
         <CustomWalletProvider>
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
+          <MessagingProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </MessagingProvider>
         </CustomWalletProvider>
       </WalletProvider>
     </SuiClientProvider>

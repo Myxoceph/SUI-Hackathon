@@ -12,6 +12,7 @@
   "dependencies": {
     "@mysten/dapp-kit": "0.19.6",
     "@mysten/enoki": "^0.12.12",
+    "@mysten/messaging": "^0.1.0",
     "@mysten/sui": "1.43.1",
     "@mysten/zklogin": "^0.8.1",
     "@radix-ui/react-label": "^2.1.8",
