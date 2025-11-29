@@ -151,6 +151,36 @@ const Settings = () => {
               Clear Data
             </Button>
           </div>
+
+          <div className="border-t border-destructive/20 pt-4 mt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-destructive">Clear All Users</p>
+                <p className="text-sm text-muted-foreground">
+                  Remove all user profiles from localStorage (Developer Tool)
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (confirm("⚠️ This will delete ALL user profiles from localStorage. Continue?")) {
+                    let count = 0;
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                      const key = localStorage.key(i);
+                      if (key && key.startsWith('user_')) {
+                        localStorage.removeItem(key);
+                        count++;
+                      }
+                    }
+                    toast.success(`Cleared ${count} user profile(s)`);
+                    window.location.reload();
+                  }
+                }}
+              >
+                Clear All Users
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { isUsernameTaken } from "@/lib/userProfile";
 
 const UsernameSetup = ({ address, onComplete, onCancel }) => {
   const [username, setUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTaken, setIsTaken] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,13 +25,17 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
       return;
     }
 
+    if (isUsernameTaken(username)) {
+      toast.error("Username is already taken!");
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
-      // TODO: Check username availability on smart contract
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // TODO: Register username on Move smart contract
+      // Temporary: Save to localStorage until Move integration
       
-      // Save to localStorage
       const userData = {
         username,
         address,
@@ -62,26 +68,46 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
               <Label htmlFor="username" className="font-mono uppercase text-xs">
                 Username
               </Label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                placeholder="e.g. builder_42"
-                className="rounded-none border-border bg-background font-mono"
-                autoFocus
-                required
-                minLength={3}
-                maxLength={20}
-              />
-              <p className="text-xs text-muted-foreground">
-                3-20 characters, letters, numbers, _ and - only
+              <div className="relative">
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                  placeholder="e.g. builder_42"
+                  className={`rounded-none border-border bg-background font-mono pr-10 ${
+                    username.length >= 3 && (isTaken ? 'border-destructive' : 'border-green-500')
+                  }`}
+                  autoFocus
+                  required
+                  minLength={3}
+                  maxLength={20}
+                />
+                {username.length >= 3 && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {isTaken ? (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    )}
+                  </div>
+                )}
+              </div>
+              <p className={`text-xs ${
+                username.length >= 3 && isTaken 
+                  ? 'text-destructive font-semibold' 
+                  : 'text-muted-foreground'
+              }`}>
+                {username.length >= 3 && isTaken 
+                  ? '⚠️ Username already taken' 
+                  : '3-20 characters, letters, numbers, _ and - only'
+                }
               </p>
             </div>
 
             <Button
               type="submit"
               className="w-full font-mono h-12 text-base"
-              disabled={isSubmitting || username.length < 3}
+              disabled={isSubmitting || username.length < 3 || isTaken}
             >
               {isSubmitting ? (
                 <>

@@ -47,9 +47,26 @@ export const isValidUsername = (username) => {
   return /^[a-zA-Z0-9_-]+$/.test(username);
 };
 
-// Check if username is taken (mock - will be replaced with smart contract call)
-export const isUsernameTaken = async (username) => {
-  // TODO: Check on blockchain
-  await new Promise(resolve => setTimeout(resolve, 500));
+// Check if username is taken
+export const isUsernameTaken = (username) => {
+  if (!username) return false;
+  
+  const normalizedUsername = username.toLowerCase();
+  
+  // Check all localStorage keys for existing usernames
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('user_')) {
+      try {
+        const userData = JSON.parse(localStorage.getItem(key));
+        if (userData?.username?.toLowerCase() === normalizedUsername) {
+          return true;
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }
+  
   return false;
 };

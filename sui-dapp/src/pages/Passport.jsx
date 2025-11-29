@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExternalLink, Loader2 } from "lucide-react";
 import ContributionCard from "@/components/ContributionCard";
-import { MOCK_CONTRIBUTIONS } from "@/constants/mockData";
 import { useWallet } from "@/contexts/WalletContext";
 import { formatAddress, formatBalance } from "@/lib/formatters";
 
@@ -26,8 +25,7 @@ const Passport = () => {
     );
   }
 
-  const allContributions = [...contributions, ...MOCK_CONTRIBUTIONS];
-  const totalScore = allContributions.reduce((sum, c) => sum + (c.endorsements || 0), 0) * 100;
+  const totalScore = contributions.reduce((sum, c) => sum + (c.endorsements || 0), 0) * 100;
 
   return (
     <div className="space-y-8">
@@ -69,7 +67,7 @@ const Passport = () => {
           <div className="w-[1px] bg-border h-12" />
           <div className="text-right">
             <div className="text-sm text-muted-foreground font-mono">CONTRIBUTIONS</div>
-            <div className="text-2xl font-bold">{allContributions.length}</div>
+            <div className="text-2xl font-bold">{contributions.length}</div>
           </div>
         </div>
       </div>
@@ -102,8 +100,8 @@ const Passport = () => {
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : allContributions.length > 0 ? (
-            allContributions.map((contribution, index) => (
+          ) : contributions.length > 0 ? (
+            contributions.map((contribution, index) => (
               <ContributionCard key={index} {...contribution} />
             ))
           ) : (

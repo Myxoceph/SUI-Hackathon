@@ -62,22 +62,14 @@ export const WalletProvider = ({ children }) => {
       });
       setBalance(balanceData.totalBalance);
 
-      // Fetch user objects/contributions (mock for now)
-      // TODO: Replace with actual smart contract calls
+      // TODO: Fetch contributions from Move smart contract
+      // Fetch user objects/contributions
       const objects = await client.getOwnedObjects({
         owner: account.address,
       });
       
-      // Mock contributions based on owned objects
-      setContributions([
-        {
-          type: "ON-CHAIN",
-          title: "Connected Wallet",
-          description: `Wallet address: ${account.address.slice(0, 8)}...${account.address.slice(-6)}`,
-          date: new Date().toISOString().split('T')[0],
-          endorsements: 0,
-        }
-      ]);
+      // Parse contributions from on-chain objects
+      setContributions([]);
     } catch (error) {
       console.error("Error fetching wallet data:", error);
     } finally {
