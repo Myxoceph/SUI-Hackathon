@@ -15,17 +15,17 @@ const Home = () => {
   useEffect(() => {
     // Calculate real stats from localStorage
     const calculateStats = () => {
-      let totalContributions = 0;
+      let totalProjects = 0;
       let totalEndorsements = 0;
       let totalUsers = 0;
 
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         
-        if (key && key.startsWith('contributions_')) {
+        if (key && key.startsWith('projects_')) {
           const data = JSON.parse(localStorage.getItem(key));
-          totalContributions += data.length;
-          totalEndorsements += data.reduce((sum, c) => sum + (c.endorsements || 0), 0);
+          totalProjects += data.length;
+          totalEndorsements += data.reduce((sum, p) => sum + (p.endorsements || 0), 0);
         }
         
         if (key && key.startsWith('user_')) {
@@ -34,10 +34,10 @@ const Home = () => {
       }
 
       setStats([
-        { label: "TOTAL CONTRIBUTIONS", value: totalContributions.toString(), icon: STATS[0].icon },
+        { label: "TOTAL PROJECTS", value: totalProjects.toString(), icon: STATS[0].icon },
         { label: "VERIFIED USERS", value: totalUsers.toString(), icon: STATS[1].icon },
         { label: "ENDORSEMENTS", value: totalEndorsements.toString(), icon: STATS[2].icon },
-        { label: "NETWORK ACTIVITY", value: totalContributions > 0 ? "LIVE" : "0%", icon: STATS[3].icon },
+        { label: "NETWORK ACTIVITY", value: totalProjects > 0 ? "LIVE" : "0%", icon: STATS[3].icon },
       ]);
     };
 
@@ -56,8 +56,8 @@ const Home = () => {
       </div>
       
       <h1 className="text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:leading-[1.1] font-sans max-w-3xl">
-        On-Chain Contribution <br className="hidden sm:inline" />
-        Passport for Builders.
+        On-Chain Project <br className="hidden sm:inline" />
+        Portfolio for Builders.
       </h1>
       
       <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl font-mono">

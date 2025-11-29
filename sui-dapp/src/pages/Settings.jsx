@@ -184,22 +184,22 @@ const Settings = () => {
           <div className="border-t border-destructive/20 pt-4 mt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-destructive">Clear My Contributions</p>
+                <p className="font-medium text-destructive">Clear My Projects</p>
                 <p className="text-sm text-muted-foreground">
-                  Remove your contributions from localStorage
+                  Remove your projects from localStorage
                 </p>
               </div>
               <Button
                 variant="destructive"
                 onClick={() => {
-                  if (confirm("⚠️ This will delete all your contributions. Continue?")) {
-                    localStorage.removeItem(`contributions_${address}`);
-                    toast.success("Your contributions cleared");
+                  if (confirm("⚠️ This will delete all your projects. Continue?")) {
+                    localStorage.removeItem(`projects_${address}`);
+                    toast.success("Your projects cleared");
                     window.location.reload();
                   }
                 }}
               >
-                Clear My Contributions
+                Clear My Projects
               </Button>
             </div>
           </div>
@@ -207,30 +207,30 @@ const Settings = () => {
           <div className="border-t border-destructive/20 pt-4 mt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-destructive">Clear All Contributions</p>
+                <p className="font-medium text-destructive">Clear All Projects</p>
                 <p className="text-sm text-muted-foreground">
-                  Remove all contributions from all users (Developer Tool)
+                  Remove all projects from all users (Developer Tool)
                 </p>
               </div>
               <Button
                 variant="destructive"
                 onClick={() => {
-                  if (confirm("⚠️ This will delete ALL contributions from ALL users. Continue?")) {
+                  if (confirm("⚠️ This will delete ALL projects from ALL users. Continue?")) {
                     let count = 0;
                     for (let i = localStorage.length - 1; i >= 0; i--) {
                       const key = localStorage.key(i);
-                      if (key && key.startsWith('contributions_')) {
+                      if (key && key.startsWith('projects_')) {
                         const data = JSON.parse(localStorage.getItem(key));
                         count += data.length;
                         localStorage.removeItem(key);
                       }
                     }
-                    toast.success(`Cleared ${count} contribution(s) from all users`);
+                    toast.success(`Cleared ${count} project(s) from all users`);
                     window.location.reload();
                   }
                 }}
               >
-                Clear All Contributions
+                Clear All Projects
               </Button>
             </div>
           </div>

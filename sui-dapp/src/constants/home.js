@@ -2,7 +2,7 @@ import { Code, Users, Shield, Activity, Globe } from "lucide-react";
 
 // Stats will be fetched from Move smart contract
 export const STATS = [
-  { label: "TOTAL CONTRIBUTIONS", value: "0", icon: Code },
+  { label: "TOTAL PROJECTS", value: "0", icon: Code },
   { label: "VERIFIED USERS", value: "0", icon: Users },
   { label: "ENDORSEMENTS", value: "0", icon: Shield },
   { label: "NETWORK ACTIVITY", value: "0%", icon: Activity },
@@ -12,7 +12,7 @@ export const FEATURES = [
   {
     icon: Shield,
     title: "Verifiable Proof",
-    description: "Every contribution is hashed and stored on Sui. Immutable proof of your work history that cannot be forged or deleted.",
+    description: "Every project is hashed and stored on Sui. Immutable proof of your work history that cannot be forged or deleted.",
   },
   {
     icon: Users,
@@ -22,6 +22,6 @@ export const FEATURES = [
   {
     icon: Globe,
     title: "Open Network",
-    description: "A public graph of contributions. Portable reputation that follows you across projects and communities.",
+    description: "A public graph of projects. Portable reputation that follows you across projects and communities.",
   },
 ];

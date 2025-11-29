@@ -9,7 +9,7 @@ export const WalletProvider = ({ children }) => {
   const client = useSuiClient();
   const { mutate: disconnect } = useDisconnectWallet();
   const [balance, setBalance] = useState(null);
-  const [contributions, setContributions] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [showUsernameSetup, setShowUsernameSetup] = useState(false);
@@ -21,7 +21,7 @@ export const WalletProvider = ({ children }) => {
     } else {
       // Wallet disconnected
       setBalance(null);
-      setContributions([]);
+      setProjects([]);
       setUserProfile(null);
       setShowUsernameSetup(false);
     }
@@ -69,27 +69,27 @@ export const WalletProvider = ({ children }) => {
       ]);
       setBalance(balanceData.totalBalance);
 
-      // Fetch contributions from blockchain or localStorage
-      const { getUserContributions } = await import("@/lib/suiTransactions");
+      // Fetch projects from blockchain or localStorage
+      const { getUserProjects } = await import("@/lib/suiTransactions");
       const { CONTRACTS } = await import("@/config/contracts");
       
       if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
         // Mock mode: load from localStorage
-        const stored = localStorage.getItem(`contributions_${account.address}`);
+        const stored = localStorage.getItem(`projects_${account.address}`);
         if (stored) {
-          setContributions(JSON.parse(stored));
+          setProjects(JSON.parse(stored));
         } else {
-          setContributions([]);
+          setProjects([]);
         }
       } else {
-        // On-chain mode: fetch user's Contribution NFTs with timeout
-        const onChainContributions = await Promise.race([
-          getUserContributions(client, account.address),
+        // On-chain mode: fetch user's Project NFTs with timeout
+        const onChainProjects = await Promise.race([
+          getUserProjects(client, account.address),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Contributions fetch timeout')), 15000)
+            setTimeout(() => reject(new Error('Projects fetch timeout')), 15000)
           )
         ]);
-        setContributions(onChainContributions);
+        setProjects(onChainProjects);
       }
     } catch (error) {
       console.error("Error fetching wallet data:", error);
@@ -99,43 +99,48 @@ export const WalletProvider = ({ children }) => {
     }
   };
 
-  const addContribution = (contributionData) => {
-    const newContribution = {
+  const addProject = (projectData) => {
+    const newProject = {
       id: `mock_${Date.now()}`,
       owner: account.address,
-      ...contributionData,
+      ...projectData,
       endorsements: 0,
       createdAt: Date.now(),
       txDigest: `mock_tx_${Math.random().toString(36).substr(2, 9)}`,
     };
 
-    const updated = [...contributions, newContribution];
-    setContributions(updated);
-    localStorage.setItem(`contributions_${account.address}`, JSON.stringify(updated));
+    const updated = [...projects, newProject];
+    setProjects(updated);
+    localStorage.setItem(`projects_${account.address}`, JSON.stringify(updated));
     
-    return newContribution;
+    return newProject;
   };
 
-  const endorseContribution = (contributionId) => {
-    // Find and update the contribution across all users
+  /**
+   * @deprecated Use addProject instead
+   */
+  const addContribution = addProject;
+
+  const endorseProject = (projectId) => {
+    // Find and update the project across all users
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('contributions_')) {
+      if (key && key.startsWith('projects_')) {
         try {
           const data = JSON.parse(localStorage.getItem(key));
-          const updated = data.map(c => 
-            c.id === contributionId 
-              ? { ...c, endorsements: c.endorsements + 1 }
-              : c
+          const updated = data.map(p => 
+            p.id === projectId 
+              ? { ...p, endorsements: p.endorsements + 1 }
+              : p
           );
           
           // Check if anything changed
           if (JSON.stringify(data) !== JSON.stringify(updated)) {
             localStorage.setItem(key, JSON.stringify(updated));
             
-            // If this is current user's contributions, update state
-            if (key === `contributions_${account.address}`) {
-              setContributions(updated);
+            // If this is current user's projects, update state
+            if (key === `projects_${account.address}`) {
+              setProjects(updated);
             }
             break;
           }
@@ -146,11 +151,17 @@ export const WalletProvider = ({ children }) => {
     }
   };
 
+  /**
+   * @deprecated Use endorseProject instead
+   */
+  const endorseContribution = endorseProject;
+
   const value = {
     account,
     address: account?.address,
     balance,
-    contributions,
+    projects,
+    contributions: projects, // Backward compat
     loading,
     isConnected: !!account,
     userProfile,
@@ -159,8 +170,10 @@ export const WalletProvider = ({ children }) => {
     refreshData: fetchWalletData,
     handleUsernameSetup,
     handleCancelSetup,
-    addContribution,
-    endorseContribution,
+    addProject,
+    endorseProject,
+    addContribution, // Backward compat
+    endorseContribution, // Backward compat
   };
 
   return (

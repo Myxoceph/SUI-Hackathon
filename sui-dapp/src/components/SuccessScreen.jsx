@@ -3,8 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const SuccessScreen = ({ onReset, contribution }) => {
-  const txId = contribution?.txDigest || "0x8f...3k9";
+const SuccessScreen = ({ onReset, project, contribution }) => {
+  // Support both prop names for backward compatibility
+  const projectData = project || contribution;
+  const txId = projectData?.txDigest || "0x8f...3k9";
   const shortTxId = txId.length > 20 ? `${txId.slice(0, 8)}...${txId.slice(-6)}` : txId;
 
   return (
@@ -13,20 +15,20 @@ const SuccessScreen = ({ onReset, contribution }) => {
         <CheckCircle2 className="h-10 w-10 text-green-500" />
       </div>
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold font-sans">Submission Verified</h2>
+        <h2 className="text-2xl font-bold font-sans">Project Created</h2>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Your contribution has been recorded on the Sui blockchain.
+          Your project has been recorded on the Sui blockchain.
         </p>
         
-        {contribution && (
+        {projectData && (
           <div className="border border-border bg-card/50 p-4 rounded space-y-3 max-w-lg mx-auto">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground font-mono">TYPE</span>
-              <Badge variant="secondary" className="rounded-none">{contribution.type}</Badge>
+              <Badge variant="secondary" className="rounded-none">{projectData.type}</Badge>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground font-mono">TITLE</span>
-              <span className="text-sm font-medium">{contribution.title}</span>
+              <span className="text-sm font-medium">{projectData.title}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground font-mono">TX ID</span>
@@ -36,7 +38,7 @@ const SuccessScreen = ({ onReset, contribution }) => {
         )}
       </div>
       <div className="flex gap-4">
-        <Button onClick={onReset} variant="outline">Submit Another</Button>
+        <Button onClick={onReset} variant="outline">Create Another</Button>
         <Link to="/passport">
           <Button>
             View Passport <ExternalLink className="ml-2 h-4 w-4" />

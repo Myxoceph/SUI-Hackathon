@@ -1,6 +1,6 @@
 #[test_only]
 module peerflow::contribution_tests {
-    use peerflow::contribution::{Self, Contribution, ContributionRegistry};
+    use peerflow::contribution::{Self, Project, ProjectRegistry};
     use sui::test_scenario::{Self as ts, Scenario};
     use std::string;
 
@@ -28,7 +28,7 @@ module peerflow::contribution_tests {
         // Mint contribution
         ts::next_tx(&mut scenario, USER1);
         {
-            let mut registry = ts::take_shared<ContributionRegistry>(&scenario);
+            let mut registry = ts::take_shared<ProjectRegistry>(&scenario);
             let ctx = ts::ctx(&mut scenario);
             
             contribution::mint_contribution(
@@ -43,11 +43,11 @@ module peerflow::contribution_tests {
             ts::return_shared(registry);
         };
 
-        // Verify contribution was created
+        // Verify project was created
         ts::next_tx(&mut scenario, USER1);
         {
-            let contribution = ts::take_from_sender<Contribution>(&scenario);
-            let (owner, _, _, _, _, endorsements, _) = contribution::get_contribution_info(&contribution);
+            let contribution = ts::take_from_sender<Project>(&scenario);
+            let (owner, _, _, _, _, endorsements, _) = contribution::get_project_info(&contribution);
             
             assert!(owner == USER1, 0);
             assert!(endorsements == 0, 1);
@@ -65,7 +65,7 @@ module peerflow::contribution_tests {
         // USER1 mints contribution
         ts::next_tx(&mut scenario, USER1);
         {
-            let mut registry = ts::take_shared<ContributionRegistry>(&scenario);
+            let mut registry = ts::take_shared<ProjectRegistry>(&scenario);
             let ctx = ts::ctx(&mut scenario);
             
             contribution::mint_contribution(
@@ -83,11 +83,11 @@ module peerflow::contribution_tests {
         // USER2 endorses USER1's contribution
         ts::next_tx(&mut scenario, USER2);
         {
-            let mut registry = ts::take_shared<ContributionRegistry>(&scenario);
-            let contribution = ts::take_from_address<Contribution>(&scenario, USER1);
+            let mut registry = ts::take_shared<ProjectRegistry>(&scenario);
+            let contribution = ts::take_from_address<Project>(&scenario, USER1);
             let ctx = ts::ctx(&mut scenario);
             
-            let contribution_id = object::id(&contribution);
+            let contribution_id = sui::object::id(&contribution);
             contribution::endorse_contribution(&mut registry, contribution_id, USER1, ctx);
             
             // Check endorsement count from registry
@@ -109,7 +109,7 @@ module peerflow::contribution_tests {
         // USER1 mints contribution
         ts::next_tx(&mut scenario, USER1);
         {
-            let mut registry = ts::take_shared<ContributionRegistry>(&scenario);
+            let mut registry = ts::take_shared<ProjectRegistry>(&scenario);
             let ctx = ts::ctx(&mut scenario);
             
             contribution::mint_contribution(
@@ -127,11 +127,11 @@ module peerflow::contribution_tests {
         // USER1 tries to endorse own contribution (should fail)
         ts::next_tx(&mut scenario, USER1);
         {
-            let mut registry = ts::take_shared<ContributionRegistry>(&scenario);
-            let contribution = ts::take_from_sender<Contribution>(&scenario);
+            let mut registry = ts::take_shared<ProjectRegistry>(&scenario);
+            let contribution = ts::take_from_sender<Project>(&scenario);
             let ctx = ts::ctx(&mut scenario);
             
-            let contribution_id = object::id(&contribution);
+            let contribution_id = sui::object::id(&contribution);
             contribution::endorse_contribution(&mut registry, contribution_id, USER1, ctx);
             
             ts::return_shared(registry);
@@ -148,7 +148,7 @@ module peerflow::contribution_tests {
         // Mint 2 contributions
         ts::next_tx(&mut scenario, USER1);
         {
-            let mut registry = ts::take_shared<ContributionRegistry>(&scenario);
+            let mut registry = ts::take_shared<ProjectRegistry>(&scenario);
             let ctx = ts::ctx(&mut scenario);
             
             contribution::mint_contribution(
@@ -165,7 +165,7 @@ module peerflow::contribution_tests {
 
         ts::next_tx(&mut scenario, USER2);
         {
-            let mut registry = ts::take_shared<ContributionRegistry>(&scenario);
+            let mut registry = ts::take_shared<ProjectRegistry>(&scenario);
             let ctx = ts::ctx(&mut scenario);
             
             contribution::mint_contribution(

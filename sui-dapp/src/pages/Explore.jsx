@@ -6,7 +6,7 @@ import ProjectCard from "@/components/ProjectCard";
 import { useWallet } from "@/contexts/WalletContext";
 import { useState, useEffect } from "react";
 import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
-import { endorseContribution } from "@/lib/suiTransactions";
+import { endorseProject } from "@/lib/suiTransactions";
 import { CONTRACTS } from "@/config/contracts";
 
 const Explore = () => {
@@ -19,29 +19,29 @@ const Explore = () => {
   const [userEndorsements, setUserEndorsements] = useState(new Set());
 
   useEffect(() => {
-    loadAllContributions();
+    loadAllProjects();
     
     // Auto-refresh every 30 seconds (balanced)
     const interval = setInterval(() => {
-      loadAllContributions();
+      loadAllProjects();
     }, 30000);
 
     return () => clearInterval(interval);
   }, []); // Empty dependency - sadece mount/unmount'ta çalışır
 
-  // Wallet değiştiğinde contributions'ı yeniden yükle (endorsement check içinde)
+  // Wallet değiştiğinde projeleri yeniden yükle (endorsement check içinde)
   useEffect(() => {
     if (address && projects.length > 0) {
-      // Sadece endorsement check yap, contributions zaten yüklü
-      const contributionIds = projects.map(p => p.id);
-      checkUserEndorsements(contributionIds);
+      // Sadece endorsement check yap, projeler zaten yüklü
+      const projectIds = projects.map(p => p.id);
+      checkUserEndorsements(projectIds);
     } else if (!address) {
       // Wallet disconnected - clear endorsements
       setUserEndorsements(new Set());
     }
   }, [address]); // Sadece address değiştiğinde çalışır
 
-  const loadAllContributions = async (retryCount = 0) => {
+  const loadAllProjects = async (retryCount = 0) => {
     // Concurrent load varsa iptal et
     if (loading && retryCount === 0) return;
     
@@ -50,16 +50,16 @@ const Explore = () => {
       // If contracts not deployed, show mock data
       if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
         // Load from localStorage (mock data)
-        const allContributions = [];
+        const allProjects = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
-          if (key && key.startsWith('contributions_')) {
+          if (key && key.startsWith('projects_')) {
             const data = JSON.parse(localStorage.getItem(key));
-            allContributions.push(...data);
+            allProjects.push(...data);
           }
         }
-        allContributions.sort((a, b) => b.createdAt - a.createdAt);
-        setProjects(allContributions);
+        allProjects.sort((a, b) => b.createdAt - a.createdAt);
+        setProjects(allProjects);
       } else {
         // Load from on-chain using dynamic field query
         // Since Contribution objects are owned, we need to use multiGetObjects or events
@@ -67,53 +67,53 @@ const Explore = () => {
         // Option 1: Query via events (most efficient for global view)
         const events = await client.queryEvents({
           query: {
-            MoveEventType: `${CONTRACTS.PACKAGE_ID}::contribution::ContributionCreated`,
+            MoveEventType: `${CONTRACTS.PACKAGE_ID}::contribution::ProjectCreated`,
           },
           limit: 50,
           order: 'descending',
         });
 
-        // Get contribution IDs from events
-        const contributionIds = events.data.map(event => event.parsedJson.contribution_id);
+        // Get project IDs from events
+        const projectIds = events.data.map(event => event.parsedJson.project_id || event.parsedJson.contribution_id);
 
-        if (contributionIds.length === 0) {
+        if (projectIds.length === 0) {
           setProjects([]);
           return;
         }
 
-        // Fetch actual contribution objects
+        // Fetch actual project objects
         const objectsResponse = await client.multiGetObjects({
-          ids: contributionIds,
+          ids: projectIds,
           options: {
             showContent: true,
             showOwner: true,
           },
         });
 
-        const contributions = objectsResponse
+        const projectsList = objectsResponse
           .filter(obj => obj.data?.content)
           .map(obj => {
             const fields = obj.data.content.fields || {};
             return {
               id: obj.data.objectId,
               owner: fields.owner,
-              type: fields.contribution_type,
+              type: fields.project_type || fields.contribution_type,
               title: fields.title,
               description: fields.description,
               proofLink: fields.proof_link,
-              endorsements: parseInt(fields.endorsements || "0"),
+              endorsements: parseInt(fields.endorsement_count || fields.endorsements || "0"),
               createdAt: parseInt(fields.created_at || "0"),
             };
           });
 
-        // Fetch endorsement counts from registry for all contributions
+        // Fetch endorsement counts from registry for all projects
         const registry = await client.getObject({
-          id: CONTRACTS.CONTRIBUTION_REGISTRY,
+          id: CONTRACTS.PROJECT_REGISTRY,
           options: { showContent: true },
         });
 
         // Update endorsement counts from registry
-        for (const contribution of contributions) {
+        for (const project of projectsList) {
           try {
             const tableId = registry.data?.content?.fields?.endorsement_counts?.fields?.id?.id;
             if (tableId) {
@@ -121,32 +121,32 @@ const Explore = () => {
                 parentId: tableId,
                 name: {
                   type: "0x2::object::ID",
-                  value: contribution.id,
+                  value: project.id,
                 },
               });
-              contribution.endorsements = parseInt(dynamicField.data?.content?.fields?.value || "0");
+              project.endorsements = parseInt(dynamicField.data?.content?.fields?.value || "0");
             }
           } catch (error) {
             // Field might not exist yet, keep default 0
-            console.log(`No endorsements yet for ${contribution.id}`);
+            console.log(`No endorsements yet for ${project.id}`);
           }
         }
 
-        contributions.sort((a, b) => b.createdAt - a.createdAt);
-        setProjects(contributions);
+        projectsList.sort((a, b) => b.createdAt - a.createdAt);
+        setProjects(projectsList);
         
-        // Check which contributions current user has endorsed
+        // Check which projects current user has endorsed
         if (address) {
-          await checkUserEndorsements(contributionIds);
+          await checkUserEndorsements(projectIds);
         }
       }
     } catch (error) {
-      console.error('Error loading contributions:', error);
+      console.error('Error loading projects:', error);
       
       // Sadece ilk yükleme hatalarında toast göster
       // Auto-refresh hatalarını sessizce logla (UX için)
       if (projects.length === 0) {
-        toast.error("Failed to load contributions. Please refresh the page.", {
+        toast.error("Failed to load projects. Please refresh the page.", {
           duration: 5000,
         });
       }
@@ -156,14 +156,14 @@ const Explore = () => {
     }
   };
 
-  const checkUserEndorsements = async (contributionIds) => {
-    if (!address || !contributionIds || contributionIds.length === 0) {
+  const checkUserEndorsements = async (projectIds) => {
+    if (!address || !projectIds || projectIds.length === 0) {
       return;
     }
     
     try {
       const registry = await client.getObject({
-        id: CONTRACTS.CONTRIBUTION_REGISTRY,
+        id: CONTRACTS.PROJECT_REGISTRY,
         options: { showContent: true },
       });
 
@@ -175,19 +175,19 @@ const Explore = () => {
 
       const endorsed = new Set();
       
-      // Check each contribution sequentially to avoid race conditions
-      for (const contributionId of contributionIds) {
+      // Check each project sequentially to avoid race conditions
+      for (const projectId of projectIds) {
         try {
-          // Get endorsers table for this contribution
-          const endorsersForContribution = await client.getDynamicFieldObject({
+          // Get endorsers table for this project
+          const endorsersForProject = await client.getDynamicFieldObject({
             parentId: endorsersTableId,
             name: {
               type: "0x2::object::ID",
-              value: contributionId,
+              value: projectId,
             },
           });
 
-          const innerTableId = endorsersForContribution.data?.content?.fields?.value?.fields?.id?.id;
+          const innerTableId = endorsersForProject.data?.content?.fields?.value?.fields?.id?.id;
           if (!innerTableId) {
             continue;
           }
@@ -203,13 +203,13 @@ const Explore = () => {
             });
             
             if (userEndorsement.data) {
-              endorsed.add(contributionId);
+              endorsed.add(projectId);
             }
           } catch (e) {
             // User hasn't endorsed this one - expected
           }
         } catch (e) {
-          // No endorsers yet for this contribution - expected
+          // No endorsers yet for this project - expected
         }
       }
       
@@ -221,7 +221,7 @@ const Explore = () => {
     }
   };
 
-  const handleEndorse = async (contributionId) => {
+  const handleEndorse = async (projectId) => {
     if (!isConnected) {
       toast.error("Please connect your wallet to endorse!");
       return;
@@ -232,42 +232,42 @@ const Explore = () => {
       return;
     }
 
-    // Check if user is trying to endorse their own contribution
-    const contribution = projects.find(p => p.id === contributionId);
-    if (contribution && address && contribution.owner.toLowerCase() === address.toLowerCase()) {
-      toast.error("You cannot endorse your own contribution!");
+    // Check if user is trying to endorse their own project
+    const project = projects.find(p => p.id === projectId);
+    if (project && address && project.owner.toLowerCase() === address.toLowerCase()) {
+      toast.error("You cannot endorse your own project!");
       return;
     }
     
     // Check if already endorsed
-    if (userEndorsements.has(contributionId)) {
-      toast.error("You already endorsed this contribution!");
+    if (userEndorsements.has(projectId)) {
+      toast.error("You already endorsed this project!");
       return;
     }
     
-    setEndorsingId(contributionId);
+    setEndorsingId(projectId);
     
     try {
-      const result = await endorseContribution(signAndExecute, contributionId, contribution.owner);
+      const result = await endorseProject(signAndExecute, projectId, project.owner);
       
-      toast.success("Contribution endorsed!", {
+      toast.success("Project endorsed!", {
         description: `Transaction: ${result.digest?.slice(0, 8)}...`,
       });
 
       // Add to local endorsements set immediately
-      setUserEndorsements(prev => new Set([...prev, contributionId]));
+      setUserEndorsements(prev => new Set([...prev, projectId]));
       
-      // Reload contributions after endorsement is confirmed
-      await loadAllContributions();
+      // Reload projects after endorsement is confirmed
+      await loadAllProjects();
     } catch (error) {
       console.error("Endorsement error:", error);
       
       // Parse Move abort error codes
       if (error.message?.includes("MoveAbort")) {
         if (error.message?.includes("3")) {
-          toast.error("You cannot endorse your own contribution!");
+          toast.error("You cannot endorse your own project!");
         } else if (error.message?.includes("2")) {
-          toast.error("You already endorsed this contribution!");
+          toast.error("You already endorsed this project!");
         } else {
           toast.error("Endorsement failed: " + (error.message || "Unknown error"));
         }
@@ -283,7 +283,7 @@ const Explore = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold font-sans">Explore Contributions</h1>
+          <h1 className="text-3xl font-bold font-sans">Explore Projects</h1>
           <p className="text-muted-foreground font-mono text-sm">
             Discover what the community is building.
           </p>
@@ -322,9 +322,9 @@ const Explore = () => {
           <div className="col-span-full text-center py-12 space-y-4">
             <div className="text-4xl">📦</div>
             <div className="space-y-2">
-              <p className="text-lg font-semibold">No Contributions Yet</p>
+              <p className="text-lg font-semibold">No Projects Yet</p>
               <p className="text-sm text-muted-foreground">
-                Be the first to submit a contribution to the network!
+                Be the first to submit a project to the network!
               </p>
             </div>
           </div>

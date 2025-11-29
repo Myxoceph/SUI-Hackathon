@@ -2,13 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExternalLink, Loader2, RefreshCw } from "lucide-react";
-import ContributionCard from "@/components/ContributionCard";
+import ProjectCard from "@/components/ProjectCard";
 import { useWallet } from "@/contexts/WalletContext";
 import { formatAddress, formatBalance } from "@/lib/formatters";
 import { useEffect } from "react";
 
 const Passport = () => {
-  const { isConnected, address, balance, contributions, loading, userProfile, refreshData } = useWallet();
+  const { isConnected, address, balance, projects, loading, userProfile, refreshData } = useWallet();
 
   // Auto-refresh on mount and periodically
   useEffect(() => {
@@ -33,14 +33,14 @@ const Passport = () => {
         <div className="space-y-2">
           <h2 className="text-2xl font-bold font-sans">Connect Your Wallet</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Connect your Sui wallet to view your contribution passport and build your on-chain reputation.
+            Connect your Sui wallet to view your project portfolio and build your on-chain reputation.
           </p>
         </div>
       </div>
     );
   }
 
-  const totalScore = contributions.reduce((sum, c) => sum + (c.endorsements || 0), 0) * 100;
+  const totalScore = projects.reduce((sum, p) => sum + (p.endorsements || 0), 0) * 100;
 
   return (
     <div className="space-y-8">
@@ -92,20 +92,20 @@ const Passport = () => {
           </div>
           <div className="w-[1px] bg-border h-12" />
           <div className="text-right">
-            <div className="text-sm text-muted-foreground font-mono">CONTRIBUTIONS</div>
-            <div className="text-2xl font-bold">{contributions.length}</div>
+            <div className="text-sm text-muted-foreground font-mono">PROJECTS</div>
+            <div className="text-2xl font-bold">{projects.length}</div>
           </div>
         </div>
       </div>
 
       {/* Content Tabs */}
-      <Tabs defaultValue="contributions" className="w-full">
+      <Tabs defaultValue="projects" className="w-full">
         <TabsList className="w-full justify-start border-b border-border rounded-none bg-transparent p-0 h-auto">
           <TabsTrigger 
-            value="contributions" 
+            value="projects" 
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
-            CONTRIBUTIONS
+            PROJECTS
           </TabsTrigger>
           <TabsTrigger 
             value="endorsements" 
@@ -121,18 +121,18 @@ const Passport = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="contributions" className="pt-6 space-y-4">
+        <TabsContent value="projects" className="pt-6 space-y-4">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : contributions.length > 0 ? (
-            contributions.map((contribution, index) => (
-              <ContributionCard key={index} {...contribution} />
+          ) : projects.length > 0 ? (
+            projects.map((project, index) => (
+              <ProjectCard key={index} {...project} />
             ))
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              No contributions yet. Start building!
+              No projects yet. Start building!
             </div>
           )}
         </TabsContent>

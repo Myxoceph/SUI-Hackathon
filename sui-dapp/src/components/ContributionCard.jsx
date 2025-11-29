@@ -2,7 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, CheckCircle, ThumbsUp } from "lucide-react";
 
-const ContributionCard = ({ type, title, description, date, endorsements }) => (
+/**
+ * Simple project card for display (used in Passport)
+ * For interactive card with endorsement, see ProjectCard.jsx
+ */
+const ProjectCardSimple = ({ type, title, description, date, endorsements }) => (
   <div className="flex gap-4 p-4 border border-border bg-card hover:bg-accent/5 transition-colors group">
     <div className="flex flex-col items-center gap-2 pt-1">
       <div className="h-2 w-2 rounded-full bg-primary" />
@@ -42,4 +46,6 @@ const ContributionCard = ({ type, title, description, date, endorsements }) => (
   </div>
 );
 
-export default ContributionCard;
+// Backward compatibility export
+export default ProjectCardSimple;
+export { ProjectCardSimple as ContributionCard };

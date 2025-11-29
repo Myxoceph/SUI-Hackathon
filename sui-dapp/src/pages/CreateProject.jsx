@@ -9,23 +9,23 @@ import { Loader2 } from "lucide-react";
 import { ConnectButton, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { toast } from "sonner";
 import SuccessScreen from "@/components/SuccessScreen";
-import { CONTRIBUTION_TYPES } from "@/constants/forms";
+import { PROJECT_TYPES } from "@/constants/forms";
 import { useWallet } from "@/contexts/WalletContext";
-import { mintContribution } from "@/lib/suiTransactions";
+import { createProject } from "@/lib/suiTransactions";
 import { CONTRACTS } from "@/config/contracts";
 
-const AddContribution = () => {
+const CreateProject = () => {
   const { isConnected, address, refreshData } = useWallet();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [contributionData, setContributionData] = useState({
+  const [projectData, setProjectData] = useState({
     type: '',
     title: '',
     description: '',
     proofLink: '',
   });
-  const [lastContribution, setLastContribution] = useState(null);
+  const [lastProject, setLastProject] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,26 +43,26 @@ const AddContribution = () => {
     setIsSubmitting(true);
     
     try {
-      // Mint contribution NFT on-chain - WAIT for transaction confirmation
-      const result = await mintContribution(signAndExecute, contributionData);
+      // Create project NFT on-chain - WAIT for transaction confirmation
+      const result = await createProject(signAndExecute, projectData);
       
       // Transaction confirmed! Now refresh data
       await refreshData();
       
       // Store for success screen
-      setLastContribution({
-        ...contributionData,
+      setLastProject({
+        ...projectData,
         timestamp: Date.now(),
         txDigest: result.digest,
       });
       
       setIsSuccess(true);
-      toast.success("Contribution NFT minted successfully! 🎉", {
+      toast.success("Project NFT created successfully! 🎉", {
         description: `Transaction: ${result.digest?.slice(0, 8)}...`,
       });
       
       // Reset form
-      setContributionData({
+      setProjectData({
         type: '',
         title: '',
         description: '',
@@ -85,7 +85,7 @@ const AddContribution = () => {
         <div className="space-y-4">
           <h2 className="text-2xl font-bold font-sans">Connect Your Wallet</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Connect your Sui wallet to submit contributions on-chain.
+            Connect your Sui wallet to submit projects on-chain.
           </p>
           <ConnectButton className="font-mono" />
         </div>
@@ -98,9 +98,9 @@ const AddContribution = () => {
       <SuccessScreen 
         onReset={() => {
           setIsSuccess(false);
-          setLastContribution(null);
+          setLastProject(null);
         }}
-        contribution={lastContribution}
+        project={lastProject}
       />
     );
   }
@@ -108,7 +108,7 @@ const AddContribution = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold font-sans">Submit Contribution</h1>
+        <h1 className="text-3xl font-bold font-sans">Create Project</h1>
         <p className="text-muted-foreground font-mono text-sm">
           Record your work on-chain. All submissions are subject to peer verification.
         </p>
@@ -118,17 +118,17 @@ const AddContribution = () => {
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="type" className="font-mono uppercase text-xs">Contribution Type</Label>
+              <Label htmlFor="type" className="font-mono uppercase text-xs">Project Type</Label>
               <Select 
                 required
-                value={contributionData.type}
-                onValueChange={(value) => setContributionData(prev => ({ ...prev, type: value }))}
+                value={projectData.type}
+                onValueChange={(value) => setProjectData(prev => ({ ...prev, type: value }))}
               >
                 <SelectTrigger className="rounded-none border-border bg-background">
                   <SelectValue placeholder="Select type..." />
                 </SelectTrigger>
                 <SelectContent className="rounded-none border-border">
-                  {CONTRIBUTION_TYPES.map(({ value, label }) => (
+                  {PROJECT_TYPES.map(({ value, label }) => (
                     <SelectItem key={value} value={value}>{label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -142,8 +142,8 @@ const AddContribution = () => {
                 placeholder="e.g. Implemented Staking Module" 
                 className="rounded-none border-border bg-background"
                 required
-                value={contributionData.title}
-                onChange={(e) => setContributionData(prev => ({ ...prev, title: e.target.value }))}
+                value={projectData.title}
+                onChange={(e) => setProjectData(prev => ({ ...prev, title: e.target.value }))}
               />
             </div>
 
@@ -154,8 +154,8 @@ const AddContribution = () => {
                 placeholder="Describe what you built, the technologies used, and the impact..." 
                 className="rounded-none border-border bg-background min-h-[120px]"
                 required
-                value={contributionData.description}
-                onChange={(e) => setContributionData(prev => ({ ...prev, description: e.target.value }))}
+                value={projectData.description}
+                onChange={(e) => setProjectData(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
 
@@ -167,8 +167,8 @@ const AddContribution = () => {
                 placeholder="https://github.com/..." 
                 className="rounded-none border-border bg-background"
                 required
-                value={contributionData.proofLink}
-                onChange={(e) => setContributionData(prev => ({ ...prev, proofLink: e.target.value }))}
+                value={projectData.proofLink}
+                onChange={(e) => setProjectData(prev => ({ ...prev, proofLink: e.target.value }))}
               />
             </div>
 
@@ -198,4 +198,4 @@ const AddContribution = () => {
   );
 };
 
-export default AddContribution;
+export default CreateProject;

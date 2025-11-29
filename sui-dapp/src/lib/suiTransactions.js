@@ -34,22 +34,22 @@ export const registerUsername = async (signAndExecute, username) => {
 };
 
 /**
- * Mint a new contribution
+ * Create a new project NFT
  * @param {Object} signAndExecute - Function from useSignAndExecuteTransactionBlock
- * @param {Object} contribution - Contribution data
+ * @param {Object} project - Project data (type, title, description, proofLink)
  * @returns {Promise<Object>} Transaction result
  */
-export const mintContribution = async (signAndExecute, contribution) => {
+export const createProject = async (signAndExecute, project) => {
   const tx = new Transaction();
 
   tx.moveCall({
-    target: `${CONTRACTS.PACKAGE_ID}::contribution::mint_contribution`,
+    target: `${CONTRACTS.PACKAGE_ID}::contribution::create_project`,
     arguments: [
-      tx.object(CONTRACTS.CONTRIBUTION_REGISTRY),
-      tx.pure.string(contribution.type),
-      tx.pure.string(contribution.title),
-      tx.pure.string(contribution.description),
-      tx.pure.string(contribution.proofLink),
+      tx.object(CONTRACTS.PROJECT_REGISTRY),
+      tx.pure.string(project.type),
+      tx.pure.string(project.title),
+      tx.pure.string(project.description),
+      tx.pure.string(project.proofLink),
     ],
   });
 
@@ -69,22 +69,27 @@ export const mintContribution = async (signAndExecute, contribution) => {
 };
 
 /**
- * Endorse a contribution
+ * Backward compatibility alias for createProject
+ * @deprecated Use createProject instead
+ */
+export const mintContribution = createProject;
+
+/**
+ * Endorse a project
  * @param {Object} signAndExecute - Function from useSignAndExecuteTransactionBlock
- * @param {string} contributionId - ID of contribution to endorse
- * @param {string} contributionOwner - Owner address of the contribution
+ * @param {string} projectId - ID of project to endorse
+ * @param {string} projectOwner - Owner address of the project
  * @returns {Promise<Object>} Transaction result
  */
-export const endorseContribution = async (signAndExecute, contributionId, contributionOwner) => {
+export const endorseProject = async (signAndExecute, projectId, projectOwner) => {
   const tx = new Transaction();
 
-  // New signature: uses ID and address instead of mutable reference
   tx.moveCall({
-    target: `${CONTRACTS.PACKAGE_ID}::contribution::endorse_contribution`,
+    target: `${CONTRACTS.PACKAGE_ID}::contribution::endorse_project`,
     arguments: [
-      tx.object(CONTRACTS.CONTRIBUTION_REGISTRY),
-      tx.pure.id(contributionId),
-      tx.pure.address(contributionOwner),
+      tx.object(CONTRACTS.PROJECT_REGISTRY),
+      tx.pure.id(projectId),
+      tx.pure.address(projectOwner),
     ],
   });
 
@@ -104,17 +109,23 @@ export const endorseContribution = async (signAndExecute, contributionId, contri
 };
 
 /**
- * Query user contributions from owned objects
+ * Backward compatibility alias for endorseProject
+ * @deprecated Use endorseProject instead
+ */
+export const endorseContribution = endorseProject;
+
+/**
+ * Query user projects from owned objects
  * @param {Object} client - Sui client instance
  * @param {string} address - User address
- * @returns {Promise<Array>} List of contributions
+ * @returns {Promise<Array>} List of projects
  */
-export const getUserContributions = async (client, address) => {
+export const getUserProjects = async (client, address) => {
   try {
     const objects = await client.getOwnedObjects({
       owner: address,
       filter: {
-        StructType: `${CONTRACTS.PACKAGE_ID}::contribution::Contribution`,
+        StructType: `${CONTRACTS.PACKAGE_ID}::contribution::Project`,
       },
       options: {
         showContent: true,
@@ -124,43 +135,55 @@ export const getUserContributions = async (client, address) => {
 
     return objects.data
       .filter((obj) => obj.data?.content)
-      .map((obj) => parseContribution(obj.data));
+      .map((obj) => parseProject(obj.data));
   } catch (error) {
-    console.error("Error fetching contributions:", error);
+    console.error("Error fetching projects:", error);
     return [];
   }
 };
 
 /**
- * Parse contribution object from blockchain
- * @param {Object} data - Raw object data from Sui
- * @returns {Object} Parsed contribution
+ * Backward compatibility alias
+ * @deprecated Use getUserProjects instead
  */
-const parseContribution = (data) => {
+export const getUserContributions = getUserProjects;
+
+/**
+ * Parse project object from blockchain
+ * @param {Object} data - Raw object data from Sui
+ * @returns {Object} Parsed project
+ */
+const parseProject = (data) => {
   const fields = data.content?.fields || {};
   
   return {
     id: data.objectId,
     owner: fields.owner,
-    type: fields.contribution_type,
+    type: fields.project_type || fields.contribution_type, // Support both old and new names
     title: fields.title,
     description: fields.description,
     proofLink: fields.proof_link,
-    endorsements: parseInt(fields.endorsements || "0"), // Legacy field, use registry instead
+    endorsements: parseInt(fields.endorsement_count || fields.endorsements || "0"),
     createdAt: parseInt(fields.created_at || "0"),
   };
 };
 
 /**
- * Get endorsement count for a contribution from registry
+ * Backward compatibility alias
+ * @deprecated Use parseProject instead
+ */
+const parseContribution = parseProject;
+
+/**
+ * Get endorsement count for a project from registry
  * @param {Object} client - Sui client instance
- * @param {string} contributionId - ID of the contribution
+ * @param {string} projectId - ID of the project
  * @returns {Promise<number>} Endorsement count
  */
-export const getEndorsementCount = async (client, contributionId) => {
+export const getEndorsementCount = async (client, projectId) => {
   try {
     const registry = await client.getObject({
-      id: CONTRACTS.CONTRIBUTION_REGISTRY,
+      id: CONTRACTS.PROJECT_REGISTRY,
       options: { showContent: true },
     });
 
@@ -168,12 +191,12 @@ export const getEndorsementCount = async (client, contributionId) => {
     
     if (!endorsementCounts) return 0;
 
-    // Query dynamic field for this contribution ID
+    // Query dynamic field for this project ID
     const dynamicField = await client.getDynamicFieldObject({
-      parentId: CONTRACTS.CONTRIBUTION_REGISTRY,
+      parentId: CONTRACTS.PROJECT_REGISTRY,
       name: {
         type: "0x2::object::ID",
-        value: contributionId,
+        value: projectId,
       },
     });
 
@@ -192,20 +215,20 @@ export const getEndorsementCount = async (client, contributionId) => {
 export const getRegistryStats = async (client) => {
   try {
     const registry = await client.getObject({
-      id: CONTRACTS.CONTRIBUTION_REGISTRY,
+      id: CONTRACTS.PROJECT_REGISTRY,
       options: { showContent: true },
     });
 
     const fields = registry.data?.content?.fields || {};
 
     return {
-      totalContributions: parseInt(fields.total_contributions || "0"),
+      totalProjects: parseInt(fields.total_projects || fields.total_contributions || "0"),
       totalEndorsements: parseInt(fields.total_endorsements || "0"),
     };
   } catch (error) {
     console.error("Error fetching registry stats:", error);
     return {
-      totalContributions: 0,
+      totalProjects: 0,
       totalEndorsements: 0,
     };
   }

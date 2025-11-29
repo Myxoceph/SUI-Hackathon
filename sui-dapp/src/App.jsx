@@ -6,7 +6,7 @@ import { WalletProvider as CustomWalletProvider, useWallet } from "@/contexts/Wa
 import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
 import Passport from "@/pages/Passport";
-import AddContribution from "@/pages/AddContribution";
+import CreateProject from "@/pages/CreateProject";
 import Explore from "@/pages/Explore";
 import Settings from "@/pages/Settings";
 import UsernameSetup from "@/components/UsernameSetup";
@@ -33,7 +33,7 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/passport" element={<Passport />} />
-          <Route path="/contribute" element={<AddContribution />} />
+          <Route path="/contribute" element={<CreateProject />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
