@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import Passport from "@/pages/Passport";
 import CreateProject from "@/pages/CreateProject";
 import Explore from "@/pages/Explore";
+import Leaderboard from "@/pages/Leaderboard";
 import Settings from "@/pages/Settings";
 import UsernameSetup from "@/components/UsernameSetup";
 import { Toaster } from "@/components/ui/sonner";
@@ -35,6 +36,7 @@ const AppContent = () => {
           <Route path="/passport" element={<Passport />} />
           <Route path="/contribute" element={<CreateProject />} />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>
