@@ -6,14 +6,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { ConnectButton } from "@mysten/dapp-kit";
+import { ConnectButton, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { toast } from "sonner";
 import SuccessScreen from "@/components/SuccessScreen";
 import { CONTRIBUTION_TYPES } from "@/constants/forms";
 import { useWallet } from "@/contexts/WalletContext";
+import { mintContribution } from "@/lib/suiTransactions";
+import { CONTRACTS } from "@/config/contracts";
 
 const AddContribution = () => {
-  const { isConnected, address, addContribution } = useWallet();
+  const { isConnected, address, refreshData } = useWallet();
+  const { mutate: signAndExecute } = useSignAndExecuteTransaction();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [contributionData, setContributionData] = useState({
@@ -30,20 +33,33 @@ const AddContribution = () => {
       toast.error("Please connect your wallet first!");
       return;
     }
+
+    // Check if contracts are deployed
+    if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
+      toast.error("Smart contracts not deployed yet! Please deploy contracts first.");
+      return;
+    }
     
     setIsSubmitting(true);
     
     try {
-      // TODO: Replace with actual smart contract transaction
-      // Simulate blockchain transaction delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Mint contribution NFT on-chain - WAIT for transaction confirmation
+      const result = await mintContribution(signAndExecute, contributionData);
       
-      // Add contribution to mock storage
-      const result = addContribution(contributionData);
-      setLastContribution(result);
+      // Transaction confirmed! Now refresh data
+      await refreshData();
+      
+      // Store for success screen
+      setLastContribution({
+        ...contributionData,
+        timestamp: Date.now(),
+        txDigest: result.digest,
+      });
       
       setIsSuccess(true);
-      toast.success("Contribution submitted to the blockchain!");
+      toast.success("Contribution NFT minted successfully! 🎉", {
+        description: `Transaction: ${result.digest?.slice(0, 8)}...`,
+      });
       
       // Reset form
       setContributionData({
@@ -53,7 +69,8 @@ const AddContribution = () => {
         proofLink: '',
       });
     } catch (error) {
-      toast.error("Transaction failed: " + error.message);
+      console.error("Transaction error:", error);
+      toast.error("Transaction failed: " + (error.message || "Unknown error"));
     } finally {
       setIsSubmitting(false);
     }

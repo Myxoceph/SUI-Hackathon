@@ -3,6 +3,7 @@
 module trustchain::contribution {
     use std::string::String;
     use sui::event;
+    use sui::table::{Self, Table};
 
     // ==================== Error Codes ====================
     
@@ -37,6 +38,8 @@ module trustchain::contribution {
         id: UID,
         total_contributions: u64,
         total_endorsements: u64,
+        // Track endorsement counts by contribution ID
+        endorsement_counts: Table<ID, u64>,
     }
 
     // ==================== Events ====================
@@ -65,6 +68,7 @@ module trustchain::contribution {
             id: object::new(ctx),
             total_contributions: 0,
             total_endorsements: 0,
+            endorsement_counts: table::new(ctx),
         };
         transfer::share_object(registry);
     }
@@ -98,6 +102,9 @@ module trustchain::contribution {
 
         // Update registry
         registry.total_contributions = registry.total_contributions + 1;
+        
+        // Initialize endorsement count for this contribution
+        table::add(&mut registry.endorsement_counts, contribution_id, 0);
 
         // Emit event
         event::emit(ContributionCreated {
@@ -113,35 +120,40 @@ module trustchain::contribution {
     }
 
     /// Endorse a contribution (must be different user)
+    /// Now uses contribution_id and owner instead of mutable reference
     public entry fun endorse_contribution(
         registry: &mut ContributionRegistry,
-        contribution: &mut Contribution,
+        contribution_id: ID,
+        contribution_owner: address,
         ctx: &mut TxContext
     ) {
         let endorser = tx_context::sender(ctx);
         let timestamp = tx_context::epoch(ctx);
 
         // Validations
-        assert!(endorser != contribution.owner, ESelfEndorsement);
+        assert!(endorser != contribution_owner, ESelfEndorsement);
 
-        // Increment endorsement count
-        contribution.endorsements = contribution.endorsements + 1;
+        // Increment endorsement count in registry
+        let current_count = table::borrow_mut(&mut registry.endorsement_counts, contribution_id);
+        *current_count = *current_count + 1;
         registry.total_endorsements = registry.total_endorsements + 1;
+
+        let new_count = *current_count;
 
         // Create endorsement record
         let endorsement = Endorsement {
             id: object::new(ctx),
-            contribution_id: object::id(contribution),
+            contribution_id,
             endorser,
             timestamp,
         };
 
         // Emit event
         event::emit(ContributionEndorsed {
-            contribution_id: object::id(contribution),
+            contribution_id,
             endorser,
-            owner: contribution.owner,
-            new_endorsement_count: contribution.endorsements,
+            owner: contribution_owner,
+            new_endorsement_count: new_count,
             timestamp,
         });
 
@@ -174,9 +186,18 @@ module trustchain::contribution {
         contribution.owner
     }
 
-    /// Get endorsement count
+    /// Get endorsement count from Contribution object (deprecated - use registry)
     public fun get_endorsements(contribution: &Contribution): u64 {
         contribution.endorsements
+    }
+
+    /// Get endorsement count from registry (recommended)
+    public fun get_endorsement_count(registry: &ContributionRegistry, contribution_id: ID): u64 {
+        if (table::contains(&registry.endorsement_counts, contribution_id)) {
+            *table::borrow(&registry.endorsement_counts, contribution_id)
+        } else {
+            0
+        }
     }
 
     // ==================== Test-Only Functions ====================

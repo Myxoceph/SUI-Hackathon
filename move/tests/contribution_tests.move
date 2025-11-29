@@ -84,12 +84,14 @@ module trustchain::contribution_tests {
         ts::next_tx(&mut scenario, USER2);
         {
             let mut registry = ts::take_shared<ContributionRegistry>(&scenario);
-            let mut contribution = ts::take_from_address<Contribution>(&scenario, USER1);
+            let contribution = ts::take_from_address<Contribution>(&scenario, USER1);
             let ctx = ts::ctx(&mut scenario);
             
-            contribution::endorse_contribution(&mut registry, &mut contribution, ctx);
+            let contribution_id = object::id(&contribution);
+            contribution::endorse_contribution(&mut registry, contribution_id, USER1, ctx);
             
-            let endorsements = contribution::get_endorsements(&contribution);
+            // Check endorsement count from registry
+            let endorsements = contribution::get_endorsement_count(&registry, contribution_id);
             assert!(endorsements == 1, 0);
             
             ts::return_shared(registry);
@@ -126,10 +128,11 @@ module trustchain::contribution_tests {
         ts::next_tx(&mut scenario, USER1);
         {
             let mut registry = ts::take_shared<ContributionRegistry>(&scenario);
-            let mut contribution = ts::take_from_sender<Contribution>(&scenario);
+            let contribution = ts::take_from_sender<Contribution>(&scenario);
             let ctx = ts::ctx(&mut scenario);
             
-            contribution::endorse_contribution(&mut registry, &mut contribution, ctx);
+            let contribution_id = object::id(&contribution);
+            contribution::endorse_contribution(&mut registry, contribution_id, USER1, ctx);
             
             ts::return_shared(registry);
             ts::return_to_sender(&scenario, contribution);

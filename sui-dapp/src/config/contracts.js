@@ -1,11 +1,12 @@
-// Contract configuration - will be populated after deployment
-// Run: cd move && ./deploy.sh
+// Contract configuration - Deployed on Sui Testnet
+// Deployed: 29 Kasım 2025
+// Transaction: 8VBqtyapTAAotntqphZxFnTA8ufP6GH4pGLLb4AboSBG
 
 export const CONTRACTS = {
-  PACKAGE_ID: "TO_BE_DEPLOYED",
-  CONTRIBUTION_REGISTRY: "TO_BE_DEPLOYED",
-  USERNAME_REGISTRY: "TO_BE_DEPLOYED",
-  NETWORK: "testnet", // or "devnet" for development
+  PACKAGE_ID: "0xfde88a1bc4f40e2cbed9a602f2072ee28b28acc45ebf56784b34f26b35f9415b",
+  CONTRIBUTION_REGISTRY: "0x6a8bb7948cef285aa58c815eda6cf185f026e02421ab222dc1021bcfd10c1edc",
+  USERNAME_REGISTRY: "0x817f133d7cab749234ae66c200653d979b71ca7d2ea53f0e49dcec1ffe36d8c1",
+  NETWORK: "testnet",
 };
 
 export const CONTRIBUTION_TYPES = [

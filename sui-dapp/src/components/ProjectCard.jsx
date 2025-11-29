@@ -12,8 +12,12 @@ const ProjectCard = ({
   createdAt, 
   endorsements = 0,
   proofLink,
-  onEndorse 
+  onEndorse,
+  currentUserAddress, // Yeni prop
+  isEndorsing // Loading state
 }) => {
+  const isOwnContribution = currentUserAddress && owner && 
+    currentUserAddress.toLowerCase() === owner.toLowerCase();
   const timeAgo = createdAt 
     ? new Date(createdAt).toLocaleDateString()
     : 'Recently';
@@ -54,12 +58,17 @@ const ProjectCard = ({
             0x
           </div>
           <span className="text-xs font-mono">{shortAddress}</span>
+          {isOwnContribution && (
+            <Badge variant="secondary" className="text-xs">YOU</Badge>
+          )}
         </div>
         <Button 
           variant="ghost" 
           size="sm" 
           className="h-8 text-xs font-mono hover:bg-primary hover:text-primary-foreground gap-2"
           onClick={() => onEndorse(id)}
+          disabled={isOwnContribution || isEndorsing}
+          title={isOwnContribution ? "You cannot endorse your own contribution" : "Endorse this contribution"}
         >
           <ThumbsUp className="h-3 w-3" />
           {endorsements > 0 ? `${endorsements}` : 'ENDORSE'}

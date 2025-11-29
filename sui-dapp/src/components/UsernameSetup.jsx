@@ -6,11 +6,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { isUsernameTaken } from "@/lib/userProfile";
+import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { registerUsername } from "@/lib/suiTransactions";
+import { CONTRACTS } from "@/config/contracts";
 
 const UsernameSetup = ({ address, onComplete, onCancel }) => {
   const [username, setUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTaken, setIsTaken] = useState(false);
+  const { mutate: signAndExecute } = useSignAndExecuteTransaction();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,29 +29,49 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
       return;
     }
 
-    if (isUsernameTaken(username)) {
-      toast.error("Username is already taken!");
-      return;
-    }
-
     setIsSubmitting(true);
     
     try {
-      // TODO: Register username on Move smart contract
-      // Temporary: Save to localStorage until Move integration
-      
-      const userData = {
-        username,
-        address,
-        createdAt: new Date().toISOString(),
-      };
-      
-      localStorage.setItem(`user_${address}`, JSON.stringify(userData));
-      
-      toast.success(`Welcome, ${username}!`);
-      onComplete(userData);
+      // Check if contracts are deployed
+      if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
+        // Mock mode: save to localStorage
+        if (isUsernameTaken(username)) {
+          toast.error("Username is already taken!");
+          setIsSubmitting(false);
+          return;
+        }
+
+        const userData = {
+          username,
+          address,
+          createdAt: new Date().toISOString(),
+        };
+        
+        localStorage.setItem(`user_${address}`, JSON.stringify(userData));
+        toast.success(`Welcome, ${username}!`);
+        onComplete(userData);
+      } else {
+        // On-chain mode: register on Sui blockchain
+        const result = await registerUsername(signAndExecute, username);
+        
+        const userData = {
+          username,
+          address,
+          createdAt: new Date().toISOString(),
+          txDigest: result.digest,
+        };
+        
+        // Also save locally for quick access
+        localStorage.setItem(`user_${address}`, JSON.stringify(userData));
+        
+        toast.success(`Welcome, ${username}! Profile NFT minted on Sui.`, {
+          description: `Transaction: ${result.digest?.slice(0, 8)}...`,
+        });
+        onComplete(userData);
+      }
     } catch (error) {
-      toast.error("Failed to create username");
+      console.error("Username registration error:", error);
+      toast.error("Failed to create username: " + (error.message || "Unknown error"));
       setIsSubmitting(false);
     }
   };

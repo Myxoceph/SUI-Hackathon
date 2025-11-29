@@ -1,4 +1,4 @@
-import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { Transaction } from "@mysten/sui/transactions";
 import { CONTRACTS } from "@/config/contracts";
 
 /**
@@ -8,22 +8,29 @@ import { CONTRACTS } from "@/config/contracts";
  * @returns {Promise<Object>} Transaction result
  */
 export const registerUsername = async (signAndExecute, username) => {
-  const tx = new TransactionBlock();
+  const tx = new Transaction();
 
   tx.moveCall({
     target: `${CONTRACTS.PACKAGE_ID}::username::register_username`,
     arguments: [
       tx.object(CONTRACTS.USERNAME_REGISTRY),
-      tx.pure(username, "string"),
+      tx.pure.string(username),
     ],
   });
 
-  return await signAndExecute(
-    { transactionBlock: tx },
-    {
-      onSuccess: (result) => result,
-    }
-  );
+  return new Promise((resolve, reject) => {
+    signAndExecute(
+      { transaction: tx },
+      {
+        onSuccess: (result) => {
+          resolve(result);
+        },
+        onError: (error) => {
+          reject(error);
+        },
+      }
+    );
+  });
 };
 
 /**
@@ -33,50 +40,67 @@ export const registerUsername = async (signAndExecute, username) => {
  * @returns {Promise<Object>} Transaction result
  */
 export const mintContribution = async (signAndExecute, contribution) => {
-  const tx = new TransactionBlock();
+  const tx = new Transaction();
 
   tx.moveCall({
     target: `${CONTRACTS.PACKAGE_ID}::contribution::mint_contribution`,
     arguments: [
       tx.object(CONTRACTS.CONTRIBUTION_REGISTRY),
-      tx.pure(contribution.type, "string"),
-      tx.pure(contribution.title, "string"),
-      tx.pure(contribution.description, "string"),
-      tx.pure(contribution.proofLink, "string"),
+      tx.pure.string(contribution.type),
+      tx.pure.string(contribution.title),
+      tx.pure.string(contribution.description),
+      tx.pure.string(contribution.proofLink),
     ],
   });
 
-  return await signAndExecute(
-    { transactionBlock: tx },
-    {
-      onSuccess: (result) => result,
-    }
-  );
+  return new Promise((resolve, reject) => {
+    signAndExecute(
+      { transaction: tx },
+      {
+        onSuccess: (result) => {
+          resolve(result);
+        },
+        onError: (error) => {
+          reject(error);
+        },
+      }
+    );
+  });
 };
 
 /**
  * Endorse a contribution
  * @param {Object} signAndExecute - Function from useSignAndExecuteTransactionBlock
  * @param {string} contributionId - ID of contribution to endorse
+ * @param {string} contributionOwner - Owner address of the contribution
  * @returns {Promise<Object>} Transaction result
  */
-export const endorseContribution = async (signAndExecute, contributionId) => {
-  const tx = new TransactionBlock();
+export const endorseContribution = async (signAndExecute, contributionId, contributionOwner) => {
+  const tx = new Transaction();
 
+  // New signature: uses ID and address instead of mutable reference
   tx.moveCall({
     target: `${CONTRACTS.PACKAGE_ID}::contribution::endorse_contribution`,
     arguments: [
       tx.object(CONTRACTS.CONTRIBUTION_REGISTRY),
-      tx.object(contributionId),
+      tx.pure.id(contributionId),
+      tx.pure.address(contributionOwner),
     ],
   });
 
-  return await signAndExecute(
-    { transactionBlock: tx },
-    {
-      onSuccess: (result) => result,
-    }
-  );
+  return new Promise((resolve, reject) => {
+    signAndExecute(
+      { transaction: tx },
+      {
+        onSuccess: (result) => {
+          resolve(result);
+        },
+        onError: (error) => {
+          reject(error);
+        },
+      }
+    );
+  });
 };
 
 /**
@@ -122,9 +146,42 @@ const parseContribution = (data) => {
     title: fields.title,
     description: fields.description,
     proofLink: fields.proof_link,
-    endorsements: parseInt(fields.endorsements || "0"),
+    endorsements: parseInt(fields.endorsements || "0"), // Legacy field, use registry instead
     createdAt: parseInt(fields.created_at || "0"),
   };
+};
+
+/**
+ * Get endorsement count for a contribution from registry
+ * @param {Object} client - Sui client instance
+ * @param {string} contributionId - ID of the contribution
+ * @returns {Promise<number>} Endorsement count
+ */
+export const getEndorsementCount = async (client, contributionId) => {
+  try {
+    const registry = await client.getObject({
+      id: CONTRACTS.CONTRIBUTION_REGISTRY,
+      options: { showContent: true },
+    });
+
+    const endorsementCounts = registry.data?.content?.fields?.endorsement_counts;
+    
+    if (!endorsementCounts) return 0;
+
+    // Query dynamic field for this contribution ID
+    const dynamicField = await client.getDynamicFieldObject({
+      parentId: CONTRACTS.CONTRIBUTION_REGISTRY,
+      name: {
+        type: "0x2::object::ID",
+        value: contributionId,
+      },
+    });
+
+    return parseInt(dynamicField.data?.content?.fields?.value || "0");
+  } catch (error) {
+    console.error("Error fetching endorsement count:", error);
+    return 0;
+  }
 };
 
 /**

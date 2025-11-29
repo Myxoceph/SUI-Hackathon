@@ -1,13 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import ContributionCard from "@/components/ContributionCard";
 import { useWallet } from "@/contexts/WalletContext";
 import { formatAddress, formatBalance } from "@/lib/formatters";
+import { useEffect } from "react";
 
 const Passport = () => {
-  const { isConnected, address, balance, contributions, loading, userProfile } = useWallet();
+  const { isConnected, address, balance, contributions, loading, userProfile, refreshData } = useWallet();
+
+  // Auto-refresh on mount and periodically
+  useEffect(() => {
+    if (isConnected) {
+      refreshData();
+      
+      // Daha uzun interval - sadece gerektiğinde refresh
+      const interval = setInterval(() => {
+        refreshData();
+      }, 60000); // 1 dakika - agresif değil
+
+      return () => clearInterval(interval);
+    }
+  }, [isConnected]);
 
   if (!isConnected) {
     return (
@@ -36,9 +51,20 @@ const Passport = () => {
             <span className="text-4xl font-bold text-muted-foreground">0x</span>
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold font-sans">
-              {userProfile?.username || "builder.sui"}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold font-sans">
+                {userProfile?.username || "builder.sui"}
+              </h1>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={refreshData}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
             <div className="flex items-center gap-2 text-sm font-mono text-muted-foreground">
               <span>{formatAddress(address)}</span>
               <Button 

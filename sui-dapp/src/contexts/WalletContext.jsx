@@ -19,6 +19,7 @@ export const WalletProvider = ({ children }) => {
       checkUserProfile();
       fetchWalletData();
     } else {
+      // Wallet disconnected
       setBalance(null);
       setContributions([]);
       setUserProfile(null);
@@ -27,11 +28,14 @@ export const WalletProvider = ({ children }) => {
   }, [account?.address]);
 
   const checkUserProfile = () => {
+    if (!account?.address) return;
+    
     const profile = getUserProfile(account.address);
     
     if (!profile) {
       // Yeni kullanıcı - username setup göster
       setShowUsernameSetup(true);
+      setUserProfile(null);
     } else {
       // Mevcut kullanıcı - profilini yükle
       setUserProfile(profile);
@@ -56,22 +60,40 @@ export const WalletProvider = ({ children }) => {
     
     setLoading(true);
     try {
-      // Fetch balance
-      const balanceData = await client.getBalance({
-        owner: account.address,
-      });
+      // Fetch balance with timeout
+      const balanceData = await Promise.race([
+        client.getBalance({ owner: account.address }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Balance fetch timeout')), 10000)
+        )
+      ]);
       setBalance(balanceData.totalBalance);
 
-      // TODO: Fetch contributions from Move smart contract
-      // For now, load from localStorage for testing
-      const stored = localStorage.getItem(`contributions_${account.address}`);
-      if (stored) {
-        setContributions(JSON.parse(stored));
+      // Fetch contributions from blockchain or localStorage
+      const { getUserContributions } = await import("@/lib/suiTransactions");
+      const { CONTRACTS } = await import("@/config/contracts");
+      
+      if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
+        // Mock mode: load from localStorage
+        const stored = localStorage.getItem(`contributions_${account.address}`);
+        if (stored) {
+          setContributions(JSON.parse(stored));
+        } else {
+          setContributions([]);
+        }
       } else {
-        setContributions([]);
+        // On-chain mode: fetch user's Contribution NFTs with timeout
+        const onChainContributions = await Promise.race([
+          getUserContributions(client, account.address),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Contributions fetch timeout')), 15000)
+          )
+        ]);
+        setContributions(onChainContributions);
       }
     } catch (error) {
       console.error("Error fetching wallet data:", error);
+      // Sessizce devam et - kullanıcıyı rahatsız etme
     } finally {
       setLoading(false);
     }

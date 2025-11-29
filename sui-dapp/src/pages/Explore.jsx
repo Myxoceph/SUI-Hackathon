@@ -5,34 +5,134 @@ import { toast } from "sonner";
 import ProjectCard from "@/components/ProjectCard";
 import { useWallet } from "@/contexts/WalletContext";
 import { useState, useEffect } from "react";
+import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
+import { endorseContribution } from "@/lib/suiTransactions";
+import { CONTRACTS } from "@/config/contracts";
 
 const Explore = () => {
-  const { isConnected, endorseContribution: endorseInContext } = useWallet();
+  const { isConnected, address } = useWallet();
+  const client = useSuiClient();
+  const { mutate: signAndExecute } = useSignAndExecuteTransaction();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [endorsingId, setEndorsingId] = useState(null);
 
   useEffect(() => {
-    // Load all contributions from all users (mock data from localStorage)
     loadAllContributions();
-  }, []);
+    
+    // Auto-refresh every 30 seconds (balanced)
+    const interval = setInterval(() => {
+      loadAllContributions();
+    }, 30000);
 
-  const loadAllContributions = () => {
+    return () => clearInterval(interval);
+  }, []); // Empty dependency - sadece mount/unmount'ta çalışır
+
+  const loadAllContributions = async (retryCount = 0) => {
+    // Concurrent load varsa iptal et
+    if (loading && retryCount === 0) return;
+    
     setLoading(true);
     try {
-      // Get all contributions from localStorage
-      const allContributions = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('contributions_')) {
-          const data = JSON.parse(localStorage.getItem(key));
-          allContributions.push(...data);
+      // If contracts not deployed, show mock data
+      if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
+        // Load from localStorage (mock data)
+        const allContributions = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('contributions_')) {
+            const data = JSON.parse(localStorage.getItem(key));
+            allContributions.push(...data);
+          }
         }
+        allContributions.sort((a, b) => b.createdAt - a.createdAt);
+        setProjects(allContributions);
+      } else {
+        // Load from on-chain using dynamic field query
+        // Since Contribution objects are owned, we need to use multiGetObjects or events
+        
+        // Option 1: Query via events (most efficient for global view)
+        const events = await client.queryEvents({
+          query: {
+            MoveEventType: `${CONTRACTS.PACKAGE_ID}::contribution::ContributionCreated`,
+          },
+          limit: 50,
+          order: 'descending',
+        });
+
+        // Get contribution IDs from events
+        const contributionIds = events.data.map(event => event.parsedJson.contribution_id);
+
+        if (contributionIds.length === 0) {
+          setProjects([]);
+          return;
+        }
+
+        // Fetch actual contribution objects
+        const objectsResponse = await client.multiGetObjects({
+          ids: contributionIds,
+          options: {
+            showContent: true,
+            showOwner: true,
+          },
+        });
+
+        const contributions = objectsResponse
+          .filter(obj => obj.data?.content)
+          .map(obj => {
+            const fields = obj.data.content.fields || {};
+            return {
+              id: obj.data.objectId,
+              owner: fields.owner,
+              type: fields.contribution_type,
+              title: fields.title,
+              description: fields.description,
+              proofLink: fields.proof_link,
+              endorsements: parseInt(fields.endorsements || "0"),
+              createdAt: parseInt(fields.created_at || "0"),
+            };
+          });
+
+        // Fetch endorsement counts from registry for all contributions
+        const registry = await client.getObject({
+          id: CONTRACTS.CONTRIBUTION_REGISTRY,
+          options: { showContent: true },
+        });
+
+        // Update endorsement counts from registry
+        for (const contribution of contributions) {
+          try {
+            const tableId = registry.data?.content?.fields?.endorsement_counts?.fields?.id?.id;
+            if (tableId) {
+              const dynamicField = await client.getDynamicFieldObject({
+                parentId: tableId,
+                name: {
+                  type: "0x2::object::ID",
+                  value: contribution.id,
+                },
+              });
+              contribution.endorsements = parseInt(dynamicField.data?.content?.fields?.value || "0");
+            }
+          } catch (error) {
+            // Field might not exist yet, keep default 0
+            console.log(`No endorsements yet for ${contribution.id}`);
+          }
+        }
+
+        contributions.sort((a, b) => b.createdAt - a.createdAt);
+        setProjects(contributions);
       }
-      // Sort by newest first
-      allContributions.sort((a, b) => b.createdAt - a.createdAt);
-      setProjects(allContributions);
     } catch (error) {
       console.error('Error loading contributions:', error);
+      
+      // Sadece ilk yükleme hatalarında toast göster
+      // Auto-refresh hatalarını sessizce logla (UX için)
+      if (projects.length === 0) {
+        toast.error("Failed to load contributions. Please refresh the page.", {
+          duration: 5000,
+        });
+      }
+      // Eğer zaten data varsa, sessizce devam et (auto-refresh hatası)
     } finally {
       setLoading(false);
     }
@@ -43,20 +143,41 @@ const Explore = () => {
       toast.error("Please connect your wallet to endorse!");
       return;
     }
+
+    if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
+      toast.error("Smart contracts not deployed yet!");
+      return;
+    }
+
+    // Check if user is trying to endorse their own contribution
+    const contribution = projects.find(p => p.id === contributionId);
+    if (contribution && address && contribution.owner.toLowerCase() === address.toLowerCase()) {
+      toast.error("You cannot endorse your own contribution!");
+      return;
+    }
+    
+    setEndorsingId(contributionId);
     
     try {
-      // Simulate transaction delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Update endorsement count
-      endorseInContext(contributionId);
-      loadAllContributions(); // Reload to show updated count
+      const result = await endorseContribution(signAndExecute, contributionId, contribution.owner);
       
       toast.success("Contribution endorsed!", {
-        description: "Transaction submitted to Sui network.",
+        description: `Transaction: ${result.digest?.slice(0, 8)}...`,
       });
+
+      // Reload contributions after endorsement is confirmed
+      await loadAllContributions();
     } catch (error) {
-      toast.error("Endorsement failed: " + error.message);
+      console.error("Endorsement error:", error);
+      
+      // Parse Move abort error
+      if (error.message?.includes("MoveAbort") && error.message?.includes("3")) {
+        toast.error("You cannot endorse your own contribution!");
+      } else {
+        toast.error("Endorsement failed: " + (error.message || "Unknown error"));
+      }
+    } finally {
+      setEndorsingId(null);
     }
   };
 
@@ -89,8 +210,14 @@ const Explore = () => {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : projects.length > 0 ? (
-          projects.map((project, i) => (
-            <ProjectCard key={i} {...project} onEndorse={handleEndorse} />
+          projects.map((project) => (
+            <ProjectCard 
+              key={project.id} 
+              {...project} 
+              onEndorse={handleEndorse}
+              currentUserAddress={address}
+              isEndorsing={endorsingId === project.id}
+            />
           ))
         ) : (
           <div className="col-span-full text-center py-12 space-y-4">
