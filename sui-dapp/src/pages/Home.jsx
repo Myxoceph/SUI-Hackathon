@@ -163,8 +163,8 @@ const Home = () => {
           </>
         ) : (
           <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <ConnectButton className="font-mono" />
-            <span className="text-sm text-muted-foreground">Connect wallet to get started</span>
+            <ConnectButton className="font-mono text-base h-12 px-8" />
+            <span className="text-sm text-muted-foreground">Connect your wallet or sign in with Google to get started</span>
           </div>
         )}
       </div>

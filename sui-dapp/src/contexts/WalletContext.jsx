@@ -13,24 +13,25 @@ export const WalletProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [showUsernameSetup, setShowUsernameSetup] = useState(false);
+  
+  const activeAddress = account?.address;
 
   useEffect(() => {
-    if (account?.address) {
+    if (activeAddress) {
       checkUserProfile();
       fetchWalletData();
     } else {
-      // Wallet disconnected
       setBalance(null);
       setProjects([]);
       setUserProfile(null);
       setShowUsernameSetup(false);
     }
-  }, [account?.address]);
+  }, [activeAddress]);
 
   const checkUserProfile = () => {
-    if (!account?.address) return;
+    if (!activeAddress) return;
     
-    const profile = getUserProfile(account.address);
+    const profile = getUserProfile(activeAddress);
     
     if (!profile) {
       // Yeni kullanıcı - username setup göster
@@ -49,20 +50,20 @@ export const WalletProvider = ({ children }) => {
   };
 
   const handleCancelSetup = () => {
-    // Username setup iptal edilince wallet bağlantısını kes
+    // Username setup iptal edilince bağlantıyı kes
     disconnect();
     setShowUsernameSetup(false);
     setUserProfile(null);
   };
 
   const fetchWalletData = async () => {
-    if (!account?.address) return;
+    if (!activeAddress) return;
     
     setLoading(true);
     try {
       // Fetch balance with timeout
       const balanceData = await Promise.race([
-        client.getBalance({ owner: account.address }),
+        client.getBalance({ owner: activeAddress }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Balance fetch timeout')), 10000)
         )
@@ -75,7 +76,7 @@ export const WalletProvider = ({ children }) => {
       
       if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
         // Mock mode: load from localStorage
-        const stored = localStorage.getItem(`projects_${account.address}`);
+        const stored = localStorage.getItem(`projects_${activeAddress}`);
         if (stored) {
           setProjects(JSON.parse(stored));
         } else {
@@ -84,7 +85,7 @@ export const WalletProvider = ({ children }) => {
       } else {
         // On-chain mode: fetch user's Project NFTs with timeout
         const onChainProjects = await Promise.race([
-          getUserProjects(client, account.address),
+          getUserProjects(client, activeAddress),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Projects fetch timeout')), 15000)
           )
@@ -102,7 +103,7 @@ export const WalletProvider = ({ children }) => {
   const addProject = (projectData) => {
     const newProject = {
       id: `mock_${Date.now()}`,
-      owner: account.address,
+      owner: activeAddress,
       ...projectData,
       endorsements: 0,
       createdAt: Date.now(),
@@ -111,7 +112,7 @@ export const WalletProvider = ({ children }) => {
 
     const updated = [...projects, newProject];
     setProjects(updated);
-    localStorage.setItem(`projects_${account.address}`, JSON.stringify(updated));
+    localStorage.setItem(`projects_${activeAddress}`, JSON.stringify(updated));
     
     return newProject;
   };
@@ -139,7 +140,7 @@ export const WalletProvider = ({ children }) => {
             localStorage.setItem(key, JSON.stringify(updated));
             
             // If this is current user's projects, update state
-            if (key === `projects_${account.address}`) {
+            if (key === `projects_${activeAddress}`) {
               setProjects(updated);
             }
             break;
@@ -158,15 +159,15 @@ export const WalletProvider = ({ children }) => {
 
   const value = {
     account,
-    address: account?.address,
+    address: activeAddress,
     balance,
     projects,
     contributions: projects, // Backward compat
     loading,
-    isConnected: !!account,
+    isConnected: !!activeAddress,
     userProfile,
     showUsernameSetup,
-    isNewUser: !userProfile && !!account,
+    isNewUser: !userProfile && !!activeAddress,
     refreshData: fetchWalletData,
     handleUsernameSetup,
     handleCancelSetup,

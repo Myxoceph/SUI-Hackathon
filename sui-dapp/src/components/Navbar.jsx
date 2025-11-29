@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from "lucide-react";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
@@ -9,6 +9,19 @@ const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const account = useCurrentAccount();
+  const [loggedAddress, setLoggedAddress] = useState(null);
+
+  // Log wallet address once for faucet (only when address changes)
+  useEffect(() => {
+    if (account?.address && account.address !== loggedAddress) {
+      console.log('🔑 Connected Wallet Address:', account.address);
+      console.log('💰 Get testnet SUI: https://faucet.sui.io/', '\nPaste address:', account.address);
+      setLoggedAddress(account.address);
+    } else if (!account?.address && loggedAddress) {
+      console.log('👋 Wallet disconnected');
+      setLoggedAddress(null);
+    }
+  }, [account?.address, loggedAddress]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);

@@ -6,15 +6,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { isUsernameTaken } from "@/lib/userProfile";
-import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { useSignAndExecuteTransaction, useCurrentAccount } from "@mysten/dapp-kit";
 import { registerUsername } from "@/lib/suiTransactions";
 import { CONTRACTS } from "@/config/contracts";
+import { useGasCheck } from "@/hooks/useGasCheck";
+import GasSponsorBanner from "@/components/GasSponsorBanner";
 
 const UsernameSetup = ({ address, onComplete, onCancel }) => {
   const [username, setUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTaken, setIsTaken] = useState(false);
+  const currentAccount = useCurrentAccount();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
+  const { hasGas, balance, isLoading: gasLoading, checkBalance } = useGasCheck(0.01);
+  
+  // Assume Enoki sponsorship is available (will auto-handle)
+  const isEnokiSponsored = true;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,26 +39,42 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
     setIsSubmitting(true);
     
     try {
-      // Check if contracts are deployed
-      if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
-        // Mock mode: save to localStorage
-        if (isUsernameTaken(username)) {
-          toast.error("Username is already taken!");
+      // Check if username is taken
+      if (isUsernameTaken(username)) {
+        toast.error("Username is already taken!");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Gas check for on-chain transactions (skip if localStorage only)
+      if (CONTRACTS.PACKAGE_ID !== "TO_BE_DEPLOYED") {
+        const hasEnoughGas = await checkBalance();
+        if (!hasEnoughGas && !isEnokiSponsored) {
+          toast.error("Insufficient gas! Please get free SUI from faucet.", {
+            description: 'Click the "Get Free SUI" button below',
+            duration: 5000,
+          });
           setIsSubmitting(false);
           return;
         }
+      }
 
+      // If contracts not deployed, save to localStorage only
+      if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
         const userData = {
           username,
           address,
           createdAt: new Date().toISOString(),
+          authMethod: 'wallet',
         };
         
         localStorage.setItem(`user_${address}`, JSON.stringify(userData));
-        toast.success(`Welcome, ${username}!`);
+        toast.success(`Welcome, ${username}!`, {
+          description: 'Profile saved locally',
+        });
         onComplete(userData);
       } else {
-        // On-chain mode: register on Sui blockchain
+        // On-chain mode with normal wallet: register on Sui blockchain
         const result = await registerUsername(signAndExecute, username);
         
         const userData = {
@@ -59,6 +82,7 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
           address,
           createdAt: new Date().toISOString(),
           txDigest: result.digest,
+          authMethod: 'wallet',
         };
         
         // Also save locally for quick access
@@ -71,7 +95,20 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
       }
     } catch (error) {
       console.error("Username registration error:", error);
-      toast.error("Failed to create username: " + (error.message || "Unknown error"));
+      
+      // Check if it's a gas-related error
+      if (isGasError(error)) {
+        const gasMessage = getGasErrorMessage(error, balance);
+        toast.error(gasMessage, {
+          description: 'Click "Get Free SUI" button to add gas',
+          duration: 7000,
+        });
+      } else {
+        toast.error("Failed to create username", {
+          description: error.message || "Unknown error",
+        });
+      }
+      
       setIsSubmitting(false);
     }
   };
@@ -86,6 +123,17 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
               Choose a username to get started
             </p>
           </div>
+
+          {/* Gas Sponsor Banner */}
+          {CONTRACTS.PACKAGE_ID !== "TO_BE_DEPLOYED" && !gasLoading && (
+            <GasSponsorBanner
+              hasGas={hasGas}
+              balance={balance}
+              isSponsored={isEnokiSponsored}
+              address={address}
+              onRequestGas={checkBalance}
+            />
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -155,7 +203,7 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
             </Button>
           </form>
 
-          <div className="text-center">
+          <div className="text-center space-y-1">
             <p className="text-xs text-muted-foreground font-mono">
               Connected: {address?.slice(0, 8)}...{address?.slice(-6)}
             </p>

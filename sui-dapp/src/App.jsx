@@ -10,6 +10,8 @@ import CreateProject from "@/pages/CreateProject";
 import Explore from "@/pages/Explore";
 import Leaderboard from "@/pages/Leaderboard";
 import Settings from "@/pages/Settings";
+import AuthCallback from "@/pages/AuthCallback";
+import RegisterEnokiWallets from "@/components/RegisterEnokiWallets";
 import UsernameSetup from "@/components/UsernameSetup";
 import { Toaster } from "@/components/ui/sonner";
 import "@mysten/dapp-kit/dist/index.css";
@@ -30,16 +32,21 @@ const AppContent = () => {
 
   return (
     <>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/passport" element={<Passport />} />
-          <Route path="/contribute" element={<CreateProject />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="*" element={
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/passport" element={<Passport />} />
+              <Route path="/contribute" element={<CreateProject />} />
+              <Route path="/explore" element={<Explore />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </Layout>
+        } />
+      </Routes>
       
       {showUsernameSetup && (
         <UsernameSetup 
@@ -57,6 +64,7 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
+      <RegisterEnokiWallets />
       <WalletProvider autoConnect>
         <CustomWalletProvider>
           <BrowserRouter>
