@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 
 /**
- * OAuth callback handler for Enoki zkLogin
- * Google OAuth'tan geri dönüş için
+ * OAuth callback handler for Enoki authentication
+ * NOTE: Enoki handles this automatically via EnokiFlow component
+ * This page is kept for backward compatibility and manual redirect handling
  */
 function AuthCallback() {
   useEffect(() => {
