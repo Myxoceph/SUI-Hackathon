@@ -4,11 +4,14 @@ import { Menu, X } from "lucide-react";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, APP_NAME } from "@/constants/navigation";
+import ZKLoginButton from '@/components/ZKLoginButton';
+import { useZKLogin } from '@/contexts/ZKLoginContext';
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const account = useCurrentAccount();
+  const { isZkConnected } = useZKLogin();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => setIsMenuOpen(false);
@@ -45,7 +48,11 @@ const Navbar = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-4">
-          <ConnectButton className="font-mono text-xs" />
+          {/* Show wallet connect if not using ZKLogin */}
+          {!isZkConnected && <ConnectButton className="font-mono text-xs" />}
+          
+          {/* Show ZKLogin button if not using regular wallet */}
+          {!account && <ZKLoginButton />}
           
           <button className="md:hidden p-2" onClick={toggleMenu}>
             {isMenuOpen ? <X /> : <Menu />}

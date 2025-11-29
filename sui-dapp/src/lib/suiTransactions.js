@@ -3,11 +3,12 @@ import { CONTRACTS } from "@/config/contracts";
 
 /**
  * Register a new username on-chain
- * @param {Object} signAndExecute - Function from useSignAndExecuteTransactionBlock
+ * @param {Object} signAndExecute - Function from useSignAndExecuteTransactionBlock (optional for ZKLogin)
  * @param {string} username - Desired username
- * @returns {Promise<Object>} Transaction result
+ * @param {string} address - User address (for ZKLogin)
+ * @returns {Promise<Object|Transaction>} Transaction result or Transaction object for ZKLogin
  */
-export const registerUsername = async (signAndExecute, username) => {
+export const registerUsername = async (signAndExecute, username, address = null) => {
   const tx = new Transaction();
 
   tx.moveCall({
@@ -18,6 +19,13 @@ export const registerUsername = async (signAndExecute, username) => {
     ],
   });
 
+  // If no signAndExecute provided, return transaction for ZKLogin
+  if (!signAndExecute) {
+    if (address) tx.setSender(address);
+    return tx;
+  }
+
+  // Execute with wallet
   return new Promise((resolve, reject) => {
     signAndExecute(
       { transaction: tx },

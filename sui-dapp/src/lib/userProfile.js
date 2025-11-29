@@ -70,3 +70,35 @@ export const isUsernameTaken = (username) => {
   
   return false;
 };
+
+// Contribution management
+export const getUserContributions = (address) => {
+  if (!address) return [];
+  
+  try {
+    const data = localStorage.getItem(`contributions_${address}`);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error("Error reading contributions:", error);
+    return [];
+  }
+};
+
+export const getAllContributions = () => {
+  const allContributions = [];
+  
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('contributions_')) {
+        const contributions = JSON.parse(localStorage.getItem(key));
+        allContributions.push(...contributions);
+      }
+    }
+  } catch (error) {
+    console.error("Error reading all contributions:", error);
+  }
+  
+  return allContributions.sort((a, b) => b.createdAt - a.createdAt);
+};
+

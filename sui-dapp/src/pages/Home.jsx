@@ -7,10 +7,25 @@ import FeatureCard from "@/components/FeatureCard";
 import { STATS, FEATURES } from "@/constants/home";
 import { useWallet } from "@/contexts/WalletContext";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 const Home = () => {
   const { isConnected, userProfile } = useWallet();
   const [stats, setStats] = useState(STATS);
+
+  // Check for auth errors in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get('auth_error');
+    
+    if (authError) {
+      console.error('[Home] Auth error from URL:', authError);
+      toast.error('Authentication failed: ' + decodeURIComponent(authError));
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   useEffect(() => {
     // Calculate real stats from localStorage

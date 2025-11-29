@@ -3,12 +3,14 @@ import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { networkConfig } from "@/config/networkConfig";
 import { WalletProvider as CustomWalletProvider, useWallet } from "@/contexts/WalletContext";
+import { ZKLoginProvider } from "@/contexts/ZKLoginContext";
 import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
 import Passport from "@/pages/Passport";
 import AddContribution from "@/pages/AddContribution";
 import Explore from "@/pages/Explore";
 import Settings from "@/pages/Settings";
+import AuthCallback from "@/pages/AuthCallback";
 import UsernameSetup from "@/components/UsernameSetup";
 import { Toaster } from "@/components/ui/sonner";
 import "@mysten/dapp-kit/dist/index.css";
@@ -36,6 +38,7 @@ const AppContent = () => {
           <Route path="/contribute" element={<AddContribution />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
         </Routes>
       </Layout>
       
@@ -56,11 +59,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
       <WalletProvider autoConnect>
-        <CustomWalletProvider>
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </CustomWalletProvider>
+        <ZKLoginProvider>
+          <CustomWalletProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </CustomWalletProvider>
+        </ZKLoginProvider>
       </WalletProvider>
     </SuiClientProvider>
   </QueryClientProvider>

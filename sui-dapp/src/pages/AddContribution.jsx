@@ -33,17 +33,38 @@ const AddContribution = () => {
       toast.error("Please connect your wallet first!");
       return;
     }
-
-    // Check if contracts are deployed
-    if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
-      toast.error("Smart contracts not deployed yet! Please deploy contracts first.");
-      return;
-    }
     
     setIsSubmitting(true);
     
     try {
-      // Mint contribution NFT on-chain - WAIT for transaction confirmation
+      // Check if contracts are deployed
+      if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
+        // Mock mode: save to localStorage
+        const contribution = {
+          id: `mock_${Date.now()}`,
+          owner: address,
+          type: contributionData.type,
+          title: contributionData.title,
+          description: contributionData.description,
+          proofLink: contributionData.proofLink,
+          endorsements: 0,
+          createdAt: Date.now(),
+        };
+        
+        // Get existing contributions
+        const existingContributions = JSON.parse(localStorage.getItem(`contributions_${address}`) || '[]');
+        existingContributions.push(contribution);
+        localStorage.setItem(`contributions_${address}`, JSON.stringify(existingContributions));
+        
+        setLastContribution(contribution);
+        setIsSuccess(true);
+        
+        toast.success("Contribution added successfully!");
+        await refreshData();
+        return;
+      }
+      
+      // On-chain mode: Mint contribution NFT on-chain - WAIT for transaction confirmation
       const result = await mintContribution(signAndExecute, contributionData);
       
       // Transaction confirmed! Now refresh data

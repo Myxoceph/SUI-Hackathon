@@ -7,6 +7,7 @@ import { Loader2, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { isUsernameTaken } from "@/lib/userProfile";
 import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { useZKLogin } from "@/contexts/ZKLoginContext";
 import { registerUsername } from "@/lib/suiTransactions";
 import { CONTRACTS } from "@/config/contracts";
 
@@ -15,6 +16,7 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTaken, setIsTaken] = useState(false);
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
+  const { zkAccount, isZkConnected, signAndExecuteZkTransaction } = useZKLogin();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +36,7 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
     try {
       // Check if contracts are deployed
       if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
-        // Mock mode: save to localStorage
+        // Mock mode: save to localStorage (works for both wallet and ZKLogin)
         if (isUsernameTaken(username)) {
           toast.error("Username is already taken!");
           setIsSubmitting(false);
@@ -45,6 +47,13 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
           username,
           address,
           createdAt: new Date().toISOString(),
+          // Add ZKLogin user info if available
+          ...(isZkConnected && zkAccount && {
+            email: zkAccount.email,
+            name: zkAccount.name,
+            picture: zkAccount.picture,
+            authProvider: 'google'
+          })
         };
         
         localStorage.setItem(`user_${address}`, JSON.stringify(userData));
@@ -52,13 +61,29 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
         onComplete(userData);
       } else {
         // On-chain mode: register on Sui blockchain
-        const result = await registerUsername(signAndExecute, username);
+        let result;
+        
+        if (isZkConnected) {
+          // Use ZKLogin transaction signing
+          const txb = await registerUsername(null, username, address);
+          result = await signAndExecuteZkTransaction(txb);
+        } else {
+          // Use normal wallet transaction signing
+          result = await registerUsername(signAndExecute, username);
+        }
         
         const userData = {
           username,
           address,
           createdAt: new Date().toISOString(),
           txDigest: result.digest,
+          // Add ZKLogin user info if available
+          ...(isZkConnected && zkAccount && {
+            email: zkAccount.email,
+            name: zkAccount.name,
+            picture: zkAccount.picture,
+            authProvider: 'google'
+          })
         };
         
         // Also save locally for quick access
@@ -71,7 +96,20 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
       }
     } catch (error) {
       console.error("Username registration error:", error);
-      toast.error("Failed to create username: " + (error.message || "Unknown error"));
+      
+      // Parse Move abort errors for better user feedback
+      if (error.message?.includes('MoveAbort') || error.message?.includes('abort')) {
+        if (error.message.includes(', 1)')) {
+          toast.error("Username is already taken! Please choose another.");
+        } else if (error.message.includes(', 2)')) {
+          toast.error("You already have a username registered!");
+        } else {
+          toast.error("Invalid username. Please try a different one.");
+        }
+      } else {
+        toast.error("Failed to create username: " + (error.message || "Unknown error"));
+      }
+      
       setIsSubmitting(false);
     }
   };
@@ -82,10 +120,32 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
         <CardContent className="pt-6 space-y-6">
           <div className="space-y-2 text-center">
             <h2 className="text-2xl font-bold font-sans">Welcome to TrustChain</h2>
-            <p className="text-sm text-muted-foreground font-mono">
-              Choose a username to get started
-            </p>
+            {isZkConnected && zkAccount?.name ? (
+              <p className="text-sm text-muted-foreground font-mono">
+                Hi {zkAccount.name}! Choose a username to complete your profile
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground font-mono">
+                Choose a username to get started
+              </p>
+            )}
           </div>
+
+          {isZkConnected && zkAccount && (
+            <div className="flex items-center gap-3 p-3 rounded border border-border bg-muted/50">
+              {zkAccount.picture && (
+                <img 
+                  src={zkAccount.picture} 
+                  alt={zkAccount.name || 'User'} 
+                  className="w-10 h-10 rounded-full"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{zkAccount.name || 'User'}</p>
+                <p className="text-xs text-muted-foreground truncate">{zkAccount.email}</p>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">

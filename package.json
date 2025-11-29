@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@mysten/sui.js": "^0.54.1",
+    "@mysten/zklogin": "^0.8.1"
+  }
+}

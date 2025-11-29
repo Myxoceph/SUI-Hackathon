@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useCurrentAccount, useSuiClient, useDisconnectWallet } from "@mysten/dapp-kit";
+import { useZKLogin } from "@/contexts/ZKLoginContext";
 import { getUserProfile } from "@/lib/userProfile";
 
 const WalletContext = createContext(null);
 
 export const WalletProvider = ({ children }) => {
   const account = useCurrentAccount();
+  const { zkAccount, isZkConnected } = useZKLogin();
   const client = useSuiClient();
   const { mutate: disconnect } = useDisconnectWallet();
   const [balance, setBalance] = useState(null);
@@ -14,8 +16,12 @@ export const WalletProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [showUsernameSetup, setShowUsernameSetup] = useState(false);
 
+  // Determine active address: ZKLogin takes precedence if connected
+  const activeAddress = isZkConnected ? zkAccount?.address : account?.address;
+  const isConnected = isZkConnected || !!account;
+
   useEffect(() => {
-    if (account?.address) {
+    if (activeAddress) {
       checkUserProfile();
       fetchWalletData();
     } else {
@@ -25,12 +31,12 @@ export const WalletProvider = ({ children }) => {
       setUserProfile(null);
       setShowUsernameSetup(false);
     }
-  }, [account?.address]);
+  }, [activeAddress]);
 
   const checkUserProfile = () => {
-    if (!account?.address) return;
+    if (!activeAddress) return;
     
-    const profile = getUserProfile(account.address);
+    const profile = getUserProfile(activeAddress);
     
     if (!profile) {
       // Yeni kullanıcı - username setup göster
@@ -56,13 +62,13 @@ export const WalletProvider = ({ children }) => {
   };
 
   const fetchWalletData = async () => {
-    if (!account?.address) return;
+    if (!activeAddress) return;
     
     setLoading(true);
     try {
       // Fetch balance with timeout
       const balanceData = await Promise.race([
-        client.getBalance({ owner: account.address }),
+        client.getBalance({ owner: activeAddress }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Balance fetch timeout')), 10000)
         )
@@ -75,7 +81,7 @@ export const WalletProvider = ({ children }) => {
       
       if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
         // Mock mode: load from localStorage
-        const stored = localStorage.getItem(`contributions_${account.address}`);
+        const stored = localStorage.getItem(`contributions_${activeAddress}`);
         if (stored) {
           setContributions(JSON.parse(stored));
         } else {
@@ -84,7 +90,7 @@ export const WalletProvider = ({ children }) => {
       } else {
         // On-chain mode: fetch user's Contribution NFTs with timeout
         const onChainContributions = await Promise.race([
-          getUserContributions(client, account.address),
+          getUserContributions(client, activeAddress),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Contributions fetch timeout')), 15000)
           )
@@ -102,7 +108,7 @@ export const WalletProvider = ({ children }) => {
   const addContribution = (contributionData) => {
     const newContribution = {
       id: `mock_${Date.now()}`,
-      owner: account.address,
+      owner: activeAddress,
       ...contributionData,
       endorsements: 0,
       createdAt: Date.now(),
@@ -111,7 +117,7 @@ export const WalletProvider = ({ children }) => {
 
     const updated = [...contributions, newContribution];
     setContributions(updated);
-    localStorage.setItem(`contributions_${account.address}`, JSON.stringify(updated));
+    localStorage.setItem(`contributions_${activeAddress}`, JSON.stringify(updated));
     
     return newContribution;
   };
@@ -134,7 +140,7 @@ export const WalletProvider = ({ children }) => {
             localStorage.setItem(key, JSON.stringify(updated));
             
             // If this is current user's contributions, update state
-            if (key === `contributions_${account.address}`) {
+            if (key === `contributions_${activeAddress}`) {
               setContributions(updated);
             }
             break;
@@ -148,14 +154,16 @@ export const WalletProvider = ({ children }) => {
 
   const value = {
     account,
-    address: account?.address,
+    address: activeAddress,
     balance,
     contributions,
     loading,
-    isConnected: !!account,
+    isConnected,
+    isZkLogin: isZkConnected,
+    zkAccount,
     userProfile,
     showUsernameSetup,
-    isNewUser: !userProfile && !!account,
+    isNewUser: !userProfile && isConnected,
     refreshData: fetchWalletData,
     handleUsernameSetup,
     handleCancelSetup,
