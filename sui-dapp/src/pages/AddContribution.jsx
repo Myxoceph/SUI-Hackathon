@@ -13,9 +13,16 @@ import { CONTRIBUTION_TYPES } from "@/constants/forms";
 import { useWallet } from "@/contexts/WalletContext";
 
 const AddContribution = () => {
-  const { isConnected, address } = useWallet();
+  const { isConnected, address, addContribution } = useWallet();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [contributionData, setContributionData] = useState({
+    type: '',
+    title: '',
+    description: '',
+    proofLink: '',
+  });
+  const [lastContribution, setLastContribution] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,11 +32,31 @@ const AddContribution = () => {
     }
     
     setIsSubmitting(true);
-    // TODO: Replace with actual smart contract transaction
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    toast.success("Contribution submitted to the blockchain!");
+    
+    try {
+      // TODO: Replace with actual smart contract transaction
+      // Simulate blockchain transaction delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Add contribution to mock storage
+      const result = addContribution(contributionData);
+      setLastContribution(result);
+      
+      setIsSuccess(true);
+      toast.success("Contribution submitted to the blockchain!");
+      
+      // Reset form
+      setContributionData({
+        type: '',
+        title: '',
+        description: '',
+        proofLink: '',
+      });
+    } catch (error) {
+      toast.error("Transaction failed: " + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isConnected) {
@@ -50,7 +77,15 @@ const AddContribution = () => {
   }
 
   if (isSuccess) {
-    return <SuccessScreen onReset={() => setIsSuccess(false)} />;
+    return (
+      <SuccessScreen 
+        onReset={() => {
+          setIsSuccess(false);
+          setLastContribution(null);
+        }}
+        contribution={lastContribution}
+      />
+    );
   }
 
   return (
@@ -67,7 +102,11 @@ const AddContribution = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="type" className="font-mono uppercase text-xs">Contribution Type</Label>
-              <Select required>
+              <Select 
+                required
+                value={contributionData.type}
+                onValueChange={(value) => setContributionData(prev => ({ ...prev, type: value }))}
+              >
                 <SelectTrigger className="rounded-none border-border bg-background">
                   <SelectValue placeholder="Select type..." />
                 </SelectTrigger>
@@ -86,6 +125,8 @@ const AddContribution = () => {
                 placeholder="e.g. Implemented Staking Module" 
                 className="rounded-none border-border bg-background"
                 required
+                value={contributionData.title}
+                onChange={(e) => setContributionData(prev => ({ ...prev, title: e.target.value }))}
               />
             </div>
 
@@ -96,6 +137,8 @@ const AddContribution = () => {
                 placeholder="Describe what you built, the technologies used, and the impact..." 
                 className="rounded-none border-border bg-background min-h-[120px]"
                 required
+                value={contributionData.description}
+                onChange={(e) => setContributionData(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
 
@@ -107,6 +150,8 @@ const AddContribution = () => {
                 placeholder="https://github.com/..." 
                 className="rounded-none border-border bg-background"
                 required
+                value={contributionData.proofLink}
+                onChange={(e) => setContributionData(prev => ({ ...prev, proofLink: e.target.value }))}
               />
             </div>
 

@@ -6,9 +6,43 @@ import StatCard from "@/components/StatCard";
 import FeatureCard from "@/components/FeatureCard";
 import { STATS, FEATURES } from "@/constants/home";
 import { useWallet } from "@/contexts/WalletContext";
+import { useState, useEffect } from "react";
 
 const Home = () => {
   const { isConnected, userProfile } = useWallet();
+  const [stats, setStats] = useState(STATS);
+
+  useEffect(() => {
+    // Calculate real stats from localStorage
+    const calculateStats = () => {
+      let totalContributions = 0;
+      let totalEndorsements = 0;
+      let totalUsers = 0;
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        
+        if (key && key.startsWith('contributions_')) {
+          const data = JSON.parse(localStorage.getItem(key));
+          totalContributions += data.length;
+          totalEndorsements += data.reduce((sum, c) => sum + (c.endorsements || 0), 0);
+        }
+        
+        if (key && key.startsWith('user_')) {
+          totalUsers++;
+        }
+      }
+
+      setStats([
+        { label: "TOTAL CONTRIBUTIONS", value: totalContributions.toString(), icon: STATS[0].icon },
+        { label: "VERIFIED USERS", value: totalUsers.toString(), icon: STATS[1].icon },
+        { label: "ENDORSEMENTS", value: totalEndorsements.toString(), icon: STATS[2].icon },
+        { label: "NETWORK ACTIVITY", value: totalContributions > 0 ? "LIVE" : "0%", icon: STATS[3].icon },
+      ]);
+    };
+
+    calculateStats();
+  }, [isConnected]);
 
   return (
   <div className="space-y-16 py-8">
@@ -56,7 +90,7 @@ const Home = () => {
 
     {/* Stats Grid */}
     <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {STATS.map((stat) => (
+      {stats.map((stat) => (
         <StatCard key={stat.label} {...stat} />
       ))}
     </section>

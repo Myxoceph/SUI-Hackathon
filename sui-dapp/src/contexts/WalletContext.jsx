@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useCurrentAccount, useSuiClient, useDisconnectWallet } from "@mysten/dapp-kit";
-import { getUserProfile, isNewUser } from "@/lib/userProfile";
+import { getUserProfile } from "@/lib/userProfile";
 
 const WalletContext = createContext(null);
 
@@ -63,17 +63,64 @@ export const WalletProvider = ({ children }) => {
       setBalance(balanceData.totalBalance);
 
       // TODO: Fetch contributions from Move smart contract
-      // Fetch user objects/contributions
-      const objects = await client.getOwnedObjects({
-        owner: account.address,
-      });
-      
-      // Parse contributions from on-chain objects
-      setContributions([]);
+      // For now, load from localStorage for testing
+      const stored = localStorage.getItem(`contributions_${account.address}`);
+      if (stored) {
+        setContributions(JSON.parse(stored));
+      } else {
+        setContributions([]);
+      }
     } catch (error) {
       console.error("Error fetching wallet data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const addContribution = (contributionData) => {
+    const newContribution = {
+      id: `mock_${Date.now()}`,
+      owner: account.address,
+      ...contributionData,
+      endorsements: 0,
+      createdAt: Date.now(),
+      txDigest: `mock_tx_${Math.random().toString(36).substr(2, 9)}`,
+    };
+
+    const updated = [...contributions, newContribution];
+    setContributions(updated);
+    localStorage.setItem(`contributions_${account.address}`, JSON.stringify(updated));
+    
+    return newContribution;
+  };
+
+  const endorseContribution = (contributionId) => {
+    // Find and update the contribution across all users
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('contributions_')) {
+        try {
+          const data = JSON.parse(localStorage.getItem(key));
+          const updated = data.map(c => 
+            c.id === contributionId 
+              ? { ...c, endorsements: c.endorsements + 1 }
+              : c
+          );
+          
+          // Check if anything changed
+          if (JSON.stringify(data) !== JSON.stringify(updated)) {
+            localStorage.setItem(key, JSON.stringify(updated));
+            
+            // If this is current user's contributions, update state
+            if (key === `contributions_${account.address}`) {
+              setContributions(updated);
+            }
+            break;
+          }
+        } catch (error) {
+          console.error('Error updating endorsement:', error);
+        }
+      }
     }
   };
 
@@ -90,6 +137,8 @@ export const WalletProvider = ({ children }) => {
     refreshData: fetchWalletData,
     handleUsernameSetup,
     handleCancelSetup,
+    addContribution,
+    endorseContribution,
   };
 
   return (

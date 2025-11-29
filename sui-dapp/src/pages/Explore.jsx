@@ -7,27 +7,57 @@ import { useWallet } from "@/contexts/WalletContext";
 import { useState, useEffect } from "react";
 
 const Explore = () => {
-  const { isConnected } = useWallet();
+  const { isConnected, endorseContribution: endorseInContext } = useWallet();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // TODO: Fetch projects from Move smart contract
-    setLoading(true);
-    // Placeholder for smart contract call
-    setProjects([]);
-    setLoading(false);
+    // Load all contributions from all users (mock data from localStorage)
+    loadAllContributions();
   }, []);
 
-  const handleEndorse = () => {
+  const loadAllContributions = () => {
+    setLoading(true);
+    try {
+      // Get all contributions from localStorage
+      const allContributions = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('contributions_')) {
+          const data = JSON.parse(localStorage.getItem(key));
+          allContributions.push(...data);
+        }
+      }
+      // Sort by newest first
+      allContributions.sort((a, b) => b.createdAt - a.createdAt);
+      setProjects(allContributions);
+    } catch (error) {
+      console.error('Error loading contributions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEndorse = async (contributionId) => {
     if (!isConnected) {
       toast.error("Please connect your wallet to endorse!");
       return;
     }
-    // TODO: Call Move smart contract to endorse
-    toast.success("Contribution endorsed!", {
-      description: "Transaction submitted to Sui network.",
-    });
+    
+    try {
+      // Simulate transaction delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Update endorsement count
+      endorseInContext(contributionId);
+      loadAllContributions(); // Reload to show updated count
+      
+      toast.success("Contribution endorsed!", {
+        description: "Transaction submitted to Sui network.",
+      });
+    } catch (error) {
+      toast.error("Endorsement failed: " + error.message);
+    }
   };
 
   return (

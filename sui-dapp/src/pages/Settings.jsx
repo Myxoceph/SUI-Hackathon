@@ -6,12 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Copy, Check } from "lucide-react";
 import { useWallet } from "@/contexts/WalletContext";
-import { formatAddress, formatBalance } from "@/lib/formatters";
-import { updateUserProfile } from "@/lib/userProfile";
+import { formatBalance } from "@/lib/formatters";
 import { toast } from "sonner";
 
 const Settings = () => {
-  const { isConnected, address, balance, userProfile, refreshData } = useWallet();
+  const { isConnected, address, balance, userProfile } = useWallet();
   const [copied, setCopied] = useState(false);
 
   const copyAddress = () => {
@@ -89,7 +88,7 @@ const Settings = () => {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => window.open(`https://suiscan.xyz/devnet/account/${address}`, '_blank')}
+                onClick={() => window.open(`https://suiscan.xyz/testnet/account/${address}`, '_blank')}
                 className="rounded-none"
               >
                 <ExternalLink className="h-4 w-4" />
@@ -116,11 +115,11 @@ const Settings = () => {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-3 border border-border bg-background rounded">
             <span className="font-mono text-sm">Current Network</span>
-            <Badge className="rounded-none font-mono">DEVNET</Badge>
+            <Badge className="rounded-none font-mono">TESTNET</Badge>
           </div>
           
           <div className="text-xs text-muted-foreground font-mono">
-            ⚠️ You are on Sui Devnet. Transactions are not real.
+            ⚠️ You are on Sui Testnet. Transactions are not real.
           </div>
         </CardContent>
       </Card>
@@ -178,6 +177,60 @@ const Settings = () => {
                 }}
               >
                 Clear All Users
+              </Button>
+            </div>
+          </div>
+
+          <div className="border-t border-destructive/20 pt-4 mt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-destructive">Clear My Contributions</p>
+                <p className="text-sm text-muted-foreground">
+                  Remove your contributions from localStorage
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (confirm("⚠️ This will delete all your contributions. Continue?")) {
+                    localStorage.removeItem(`contributions_${address}`);
+                    toast.success("Your contributions cleared");
+                    window.location.reload();
+                  }
+                }}
+              >
+                Clear My Contributions
+              </Button>
+            </div>
+          </div>
+
+          <div className="border-t border-destructive/20 pt-4 mt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-destructive">Clear All Contributions</p>
+                <p className="text-sm text-muted-foreground">
+                  Remove all contributions from all users (Developer Tool)
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (confirm("⚠️ This will delete ALL contributions from ALL users. Continue?")) {
+                    let count = 0;
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                      const key = localStorage.key(i);
+                      if (key && key.startsWith('contributions_')) {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        count += data.length;
+                        localStorage.removeItem(key);
+                      }
+                    }
+                    toast.success(`Cleared ${count} contribution(s) from all users`);
+                    window.location.reload();
+                  }
+                }}
+              >
+                Clear All Contributions
               </Button>
             </div>
           </div>

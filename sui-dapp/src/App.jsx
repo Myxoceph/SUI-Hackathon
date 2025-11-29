@@ -13,7 +13,14 @@ import UsernameSetup from "@/components/UsernameSetup";
 import { Toaster } from "@/components/ui/sonner";
 import "@mysten/dapp-kit/dist/index.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const AppContent = () => {
   const { showUsernameSetup, address, handleUsernameSetup, handleCancelSetup } = useWallet();
@@ -45,7 +52,7 @@ const AppContent = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <SuiClientProvider networks={networkConfig} defaultNetwork="devnet">
+    <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
       <WalletProvider>
         <CustomWalletProvider>
           <BrowserRouter>

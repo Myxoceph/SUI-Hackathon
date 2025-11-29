@@ -45,7 +45,7 @@ const Passport = () => {
                 variant="ghost" 
                 size="icon" 
                 className="h-4 w-4"
-                onClick={() => window.open(`https://suiscan.xyz/devnet/account/${address}`, '_blank')}
+                onClick={() => window.open(`https://suiscan.xyz/testnet/account/${address}`, '_blank')}
               >
                 <ExternalLink className="h-3 w-3" />
               </Button>
