@@ -40,6 +40,8 @@ module trustchain::contribution {
         total_endorsements: u64,
         // Track endorsement counts by contribution ID
         endorsement_counts: Table<ID, u64>,
+        // Track who endorsed what (contribution_id => Table<endorser_address, bool>)
+        endorsers: Table<ID, Table<address, bool>>,
     }
 
     // ==================== Events ====================
@@ -69,6 +71,7 @@ module trustchain::contribution {
             total_contributions: 0,
             total_endorsements: 0,
             endorsement_counts: table::new(ctx),
+            endorsers: table::new(ctx),
         };
         transfer::share_object(registry);
     }
@@ -105,6 +108,9 @@ module trustchain::contribution {
         
         // Initialize endorsement count for this contribution
         table::add(&mut registry.endorsement_counts, contribution_id, 0);
+        
+        // Initialize endorsers table for this contribution
+        table::add(&mut registry.endorsers, contribution_id, table::new(ctx));
 
         // Emit event
         event::emit(ContributionCreated {
@@ -132,6 +138,13 @@ module trustchain::contribution {
 
         // Validations
         assert!(endorser != contribution_owner, ESelfEndorsement);
+        
+        // Check if already endorsed
+        let endorsers_table = table::borrow_mut(&mut registry.endorsers, contribution_id);
+        assert!(!table::contains(endorsers_table, endorser), EAlreadyEndorsed);
+        
+        // Mark as endorsed by this user
+        table::add(endorsers_table, endorser, true);
 
         // Increment endorsement count in registry
         let current_count = table::borrow_mut(&mut registry.endorsement_counts, contribution_id);

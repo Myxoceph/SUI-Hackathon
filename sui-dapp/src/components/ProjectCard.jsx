@@ -1,7 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ThumbsUp, ExternalLink } from "lucide-react";
+import { ThumbsUp, ExternalLink, Info } from "lucide-react";
 import { formatAddress } from "@/lib/formatters";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const ProjectCard = ({ 
   id,
@@ -13,8 +19,9 @@ const ProjectCard = ({
   endorsements = 0,
   proofLink,
   onEndorse,
-  currentUserAddress, // Yeni prop
-  isEndorsing // Loading state
+  currentUserAddress,
+  isEndorsing,
+  hasEndorsed // New prop - has user already endorsed this?
 }) => {
   const isOwnContribution = currentUserAddress && owner && 
     currentUserAddress.toLowerCase() === owner.toLowerCase();
@@ -62,17 +69,49 @@ const ProjectCard = ({
             <Badge variant="secondary" className="text-xs">YOU</Badge>
           )}
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="h-8 text-xs font-mono hover:bg-primary hover:text-primary-foreground gap-2"
-          onClick={() => onEndorse(id)}
-          disabled={isOwnContribution || isEndorsing}
-          title={isOwnContribution ? "You cannot endorse your own contribution" : "Endorse this contribution"}
-        >
-          <ThumbsUp className="h-3 w-3" />
-          {endorsements > 0 ? `${endorsements}` : 'ENDORSE'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 text-xs font-mono hover:bg-primary hover:text-primary-foreground gap-2"
+            onClick={() => onEndorse(id)}
+            disabled={isOwnContribution || isEndorsing || hasEndorsed}
+            title={
+              isOwnContribution 
+                ? "You cannot endorse your own contribution" 
+                : hasEndorsed
+                ? "You already endorsed this contribution"
+                : "Endorse this contribution"
+            }
+          >
+            <ThumbsUp className={`h-3 w-3 ${hasEndorsed ? 'fill-current' : ''}`} />
+            {endorsements > 0 ? `${endorsements}` : hasEndorsed ? 'ENDORSED' : 'ENDORSE'}
+          </Button>
+          
+          {endorsements > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Info className="h-3 w-3 text-muted-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-xs">
+                  <div className="space-y-2 text-xs">
+                    <p className="font-semibold">Endorsement Transparency</p>
+                    <p className="text-muted-foreground">
+                      All {endorsements} endorsement{endorsements > 1 ? 's' : ''} are recorded on-chain.
+                      View transaction history on Sui Explorer.
+                    </p>
+                    <p className="text-yellow-500 text-[10px]">
+                      ⚠️ Mutual endorsements between same users may indicate collusion
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       </div>
     </div>
   );

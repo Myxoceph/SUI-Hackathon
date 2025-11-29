@@ -1,11 +1,13 @@
 // Contract configuration - Deployed on Sui Testnet
 // Deployed: 29 Kasım 2025
-// Transaction: 8VBqtyapTAAotntqphZxFnTA8ufP6GH4pGLLb4AboSBG
+// Transaction: 5CYpRXhDC9eTDhrwJhd3vXeSYwqcHWPEmFfkjoQt7imR
+// ✅ Double endorsement prevention enabled
+// ✅ Frontend endorsement tracking enabled
 
 export const CONTRACTS = {
-  PACKAGE_ID: "0xfde88a1bc4f40e2cbed9a602f2072ee28b28acc45ebf56784b34f26b35f9415b",
-  CONTRIBUTION_REGISTRY: "0x6a8bb7948cef285aa58c815eda6cf185f026e02421ab222dc1021bcfd10c1edc",
-  USERNAME_REGISTRY: "0x817f133d7cab749234ae66c200653d979b71ca7d2ea53f0e49dcec1ffe36d8c1",
+  PACKAGE_ID: "0x57b7774f8e6d7eb8bf474f521d28aff50334697ef9d0a3cd7501337564629b39",
+  CONTRIBUTION_REGISTRY: "0x51aff48f8de0c98860ade1d88053ea17a655b7b2b3ee7e550feedfa61a871c7e",
+  USERNAME_REGISTRY: "0x94573a9a419609df8393d42d8ba829b81475c3861edfbd17d627654688710ac6",
   NETWORK: "testnet",
 };
 

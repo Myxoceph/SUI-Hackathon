@@ -16,6 +16,7 @@ const Explore = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [endorsingId, setEndorsingId] = useState(null);
+  const [userEndorsements, setUserEndorsements] = useState(new Set());
 
   useEffect(() => {
     loadAllContributions();
@@ -27,6 +28,18 @@ const Explore = () => {
 
     return () => clearInterval(interval);
   }, []); // Empty dependency - sadece mount/unmount'ta çalışır
+
+  // Wallet değiştiğinde contributions'ı yeniden yükle (endorsement check içinde)
+  useEffect(() => {
+    if (address && projects.length > 0) {
+      // Sadece endorsement check yap, contributions zaten yüklü
+      const contributionIds = projects.map(p => p.id);
+      checkUserEndorsements(contributionIds);
+    } else if (!address) {
+      // Wallet disconnected - clear endorsements
+      setUserEndorsements(new Set());
+    }
+  }, [address]); // Sadece address değiştiğinde çalışır
 
   const loadAllContributions = async (retryCount = 0) => {
     // Concurrent load varsa iptal et
@@ -121,6 +134,11 @@ const Explore = () => {
 
         contributions.sort((a, b) => b.createdAt - a.createdAt);
         setProjects(contributions);
+        
+        // Check which contributions current user has endorsed
+        if (address) {
+          await checkUserEndorsements(contributionIds);
+        }
       }
     } catch (error) {
       console.error('Error loading contributions:', error);
@@ -135,6 +153,71 @@ const Explore = () => {
       // Eğer zaten data varsa, sessizce devam et (auto-refresh hatası)
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkUserEndorsements = async (contributionIds) => {
+    if (!address || !contributionIds || contributionIds.length === 0) {
+      return;
+    }
+    
+    try {
+      const registry = await client.getObject({
+        id: CONTRACTS.CONTRIBUTION_REGISTRY,
+        options: { showContent: true },
+      });
+
+      const endorsersTableId = registry.data?.content?.fields?.endorsers?.fields?.id?.id;
+      if (!endorsersTableId) {
+        setUserEndorsements(new Set());
+        return;
+      }
+
+      const endorsed = new Set();
+      
+      // Check each contribution sequentially to avoid race conditions
+      for (const contributionId of contributionIds) {
+        try {
+          // Get endorsers table for this contribution
+          const endorsersForContribution = await client.getDynamicFieldObject({
+            parentId: endorsersTableId,
+            name: {
+              type: "0x2::object::ID",
+              value: contributionId,
+            },
+          });
+
+          const innerTableId = endorsersForContribution.data?.content?.fields?.value?.fields?.id?.id;
+          if (!innerTableId) {
+            continue;
+          }
+
+          // Check if current user is in this table
+          try {
+            const userEndorsement = await client.getDynamicFieldObject({
+              parentId: innerTableId,
+              name: {
+                type: "address",
+                value: address,
+              },
+            });
+            
+            if (userEndorsement.data) {
+              endorsed.add(contributionId);
+            }
+          } catch (e) {
+            // User hasn't endorsed this one - expected
+          }
+        } catch (e) {
+          // No endorsers yet for this contribution - expected
+        }
+      }
+      
+      setUserEndorsements(endorsed);
+    } catch (error) {
+      console.error('Error checking user endorsements:', error);
+      // Clear on error to prevent stale state
+      setUserEndorsements(new Set());
     }
   };
 
@@ -156,6 +239,12 @@ const Explore = () => {
       return;
     }
     
+    // Check if already endorsed
+    if (userEndorsements.has(contributionId)) {
+      toast.error("You already endorsed this contribution!");
+      return;
+    }
+    
     setEndorsingId(contributionId);
     
     try {
@@ -165,14 +254,23 @@ const Explore = () => {
         description: `Transaction: ${result.digest?.slice(0, 8)}...`,
       });
 
+      // Add to local endorsements set immediately
+      setUserEndorsements(prev => new Set([...prev, contributionId]));
+      
       // Reload contributions after endorsement is confirmed
       await loadAllContributions();
     } catch (error) {
       console.error("Endorsement error:", error);
       
-      // Parse Move abort error
-      if (error.message?.includes("MoveAbort") && error.message?.includes("3")) {
-        toast.error("You cannot endorse your own contribution!");
+      // Parse Move abort error codes
+      if (error.message?.includes("MoveAbort")) {
+        if (error.message?.includes("3")) {
+          toast.error("You cannot endorse your own contribution!");
+        } else if (error.message?.includes("2")) {
+          toast.error("You already endorsed this contribution!");
+        } else {
+          toast.error("Endorsement failed: " + (error.message || "Unknown error"));
+        }
       } else {
         toast.error("Endorsement failed: " + (error.message || "Unknown error"));
       }
@@ -217,6 +315,7 @@ const Explore = () => {
               onEndorse={handleEndorse}
               currentUserAddress={address}
               isEndorsing={endorsingId === project.id}
+              hasEndorsed={userEndorsements.has(project.id)}
             />
           ))
         ) : (
