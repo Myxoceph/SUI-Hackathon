@@ -1,20 +1,21 @@
 // Contract configuration - Deployed on Sui Testnet
-// Deployed: 29 Kasım 2025
-// Transaction: Gh1V5JqVKdABekPhbbGMiCkM7jiMYXBuSWFjAm9nbqMt
-// ✅ Project terminology refactoring complete
-// ✅ Double endorsement prevention enabled
-// ✅ Frontend endorsement tracking enabled
-// ✅ Display Standard enabled (NFT visualization)
-// ✅ Modular architecture with semantic naming
+// Deployed: 30 November 2025
+// Transaction: Ar9dmdHJTF46nms2LPBjTLhLQrsGph3BAsRnvghyVHWQ
 
 export const CONTRACTS = {
-  PACKAGE_ID: "0x7add2d6e923e19ff1dc31f22502251fd35036c92a4cf414a2999b475a9045bf4",
-  PROJECT_REGISTRY: "0x33f874d994bf04178847f58e1cd185c5007421c343520126d51b7c1701265ae3",
-  USERNAME_REGISTRY: "0x20e2732119f6c8e61df8ac1fc80e0f284fa0cf8176996346b05ce155da2dc709",
+  PACKAGE_ID: "0xdb0f5cdf05d5e03ceee2c00c4bfafe7e6a95a12f198362c7080017d1c57d28fb",
+  PROJECT_REGISTRY: "0x373ca7995f0c408bc88355504633516a4a0e0aaffd3e93c9deb9d28000232861",
+  USERNAME_REGISTRY: "0x4e893f556ca298e3ce4ce63c7e6c0f4311f6fa774b3d32f0349a59287e10b11e",
   NETWORK: "testnet",
   
   // Backward compatibility aliases
   get CONTRIBUTION_REGISTRY() { return this.PROJECT_REGISTRY; },
+};
+
+// Messaging configuration
+export const MESSAGING_CONFIG = {
+  PACKAGE_ID: "0xdb0f5cdf05d5e03ceee2c00c4bfafe7e6a95a12f198362c7080017d1c57d28fb",
+  MESSAGE_SENT_EVENT: "0xdb0f5cdf05d5e03ceee2c00c4bfafe7e6a95a12f198362c7080017d1c57d28fb::messaging::MessageSent",
 };
 
 export const PROJECT_TYPES = [

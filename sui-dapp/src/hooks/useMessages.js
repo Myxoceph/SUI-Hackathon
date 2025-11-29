@@ -2,15 +2,14 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useMessaging } from "@/contexts/MessagingContext";
 
 /**
- * Mesajlaşma işlevleri için hook
- * On-chain mesajlaşma özelliklerini kolayca kullanmak için
+ * Hook for messaging functionality
+ * Provides easy access to on-chain messaging features
  */
 export const useMessages = (recipientAddress = null) => {
   const {
-    messagingClient,
-    clientReady,
     userAddress,
-    channels,
+    isConnected,
+    conversations: contextConversations,
     activeChannel,
     messages: allMessages,
     loading,
@@ -19,31 +18,39 @@ export const useMessages = (recipientAddress = null) => {
     openConversation,
     getConversationMessages,
     getConversations,
+    fetchOnChainMessages,
   } = useMessaging();
 
   const [error, setError] = useState(null);
   const [sending, setSending] = useState(false);
 
-  // Bu konuşmaya ait mesajları filtrele
+  // Filter messages for this conversation
   const messages = useMemo(() => {
-    if (!recipientAddress) return allMessages;
+    if (!recipientAddress) return [];
     return getConversationMessages(recipientAddress);
   }, [allMessages, recipientAddress, getConversationMessages]);
 
-  // Konuşmaları getir
+  // Get conversations list
   const conversations = useMemo(() => {
     return getConversations();
-  }, [getConversations]);
+  }, [getConversations, contextConversations]);
 
-  // Belirli bir alıcıya mesaj gönder
+  // Load messages when recipient changes
+  useEffect(() => {
+    if (recipientAddress && isConnected) {
+      fetchOnChainMessages(recipientAddress);
+    }
+  }, [recipientAddress, isConnected, fetchOnChainMessages]);
+
+  // Send message to recipient
   const sendMessage = useCallback(async (content, recipient = recipientAddress) => {
     if (!recipient) {
-      setError("Alıcı adresi gerekli");
+      setError("Recipient address required");
       return null;
     }
 
     if (!content?.trim()) {
-      setError("Mesaj içeriği gerekli");
+      setError("Message content required");
       return null;
     }
 
@@ -54,59 +61,59 @@ export const useMessages = (recipientAddress = null) => {
       const result = await contextSendMessage(recipient, content);
       return result;
     } catch (err) {
-      setError(err.message || "Mesaj gönderilemedi");
-      console.error("Mesaj gönderme hatası:", err);
+      setError(err.message || "Failed to send message");
+      console.error("Send message error:", err);
       return null;
     } finally {
       setSending(false);
     }
   }, [contextSendMessage, recipientAddress]);
 
-  // Konuşmaları yükle
+  // Load all conversations
   const loadConversations = useCallback(async () => {
     setError(null);
     try {
       return await fetchChannels();
     } catch (err) {
-      setError(err.message || "Konuşmalar yüklenemedi");
+      setError(err.message || "Failed to load conversations");
       return [];
     }
   }, [fetchChannels]);
 
-  // Bir kullanıcıyla konuşma başlat
-  const startConversation = useCallback((recipient = recipientAddress) => {
+  // Start a conversation with user
+  const startConversation = useCallback(async (recipient = recipientAddress) => {
     if (!recipient) {
-      setError("Alıcı adresi gerekli");
+      setError("Recipient address required");
       return null;
     }
 
     setError(null);
-    return openConversation(recipient);
+    return await openConversation(recipient);
   }, [openConversation, recipientAddress]);
 
-  // Adres kısaltma yardımcı fonksiyonu
+  // Format address helper
   const formatAddress = useCallback((address) => {
     if (!address) return "";
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }, []);
 
-  // Mesaj zaman damgası formatla
+  // Format timestamp helper
   const formatTimestamp = useCallback((timestamp) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
     const now = new Date();
     
-    // Bugün mü?
+    // Today
     if (date.toDateString() === now.toDateString()) {
-      return date.toLocaleTimeString("tr-TR", { 
+      return date.toLocaleTimeString("en-US", { 
         hour: "2-digit", 
         minute: "2-digit" 
       });
     }
     
-    // Bu yıl mı?
+    // This year
     if (date.getFullYear() === now.getFullYear()) {
-      return date.toLocaleDateString("tr-TR", { 
+      return date.toLocaleDateString("en-US", { 
         day: "numeric", 
         month: "short",
         hour: "2-digit",
@@ -114,15 +121,12 @@ export const useMessages = (recipientAddress = null) => {
       });
     }
     
-    return date.toLocaleDateString("tr-TR", { 
+    return date.toLocaleDateString("en-US", { 
       day: "numeric", 
       month: "short", 
       year: "numeric" 
     });
   }, []);
-
-  // Bağlantı durumu - sadece userAddress kontrol et
-  const isConnected = !!userAddress;
 
   return {
     // State
@@ -134,7 +138,6 @@ export const useMessages = (recipientAddress = null) => {
     error,
     isConnected,
     userAddress,
-    clientReady,
 
     // Actions
     sendMessage,

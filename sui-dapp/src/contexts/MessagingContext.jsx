@@ -1,217 +1,256 @@
-import { createContext, useContext, useState, useCallback, useEffect, useMemo } from "react";
-import { SuiStackMessagingClient, TESTNET_MESSAGING_PACKAGE_CONFIG } from "@mysten/messaging";
-import { useSuiClient, useCurrentAccount, useSignPersonalMessage } from "@mysten/dapp-kit";
-import { SuiClient } from "@mysten/sui/client";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useSuiClient, useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { Transaction } from "@mysten/sui/transactions";
+import { MESSAGING_CONFIG } from "@/config/contracts";
 
 const MessagingContext = createContext(null);
 
-// Local storage key for messages
-const MESSAGES_STORAGE_KEY = "sui_messages";
+// Get config from contracts.js
+const MESSAGING_PACKAGE_ID = MESSAGING_CONFIG.PACKAGE_ID;
+const MESSAGE_SENT_EVENT = MESSAGING_CONFIG.MESSAGE_SENT_EVENT;
 
 export const MessagingProvider = ({ children }) => {
   const suiClient = useSuiClient();
   const account = useCurrentAccount();
-  const { mutateAsync: signPersonalMessage } = useSignPersonalMessage();
+  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
   
-  const [channels, setChannels] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [messages, setMessages] = useState({});
   const [activeChannel, setActiveChannel] = useState(null);
-  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [clientReady, setClientReady] = useState(false);
-  const [messagingClient, setMessagingClient] = useState(null);
 
-  // SuiStackMessagingClient'ı experimental_asClientExtension ile oluştur
-  useEffect(() => {
-    if (!suiClient) {
-      setClientReady(false);
-      return;
-    }
+  const userAddress = account?.address;
+  const isConnected = !!userAddress;
+
+  // Load messages from blockchain events
+  const fetchOnChainMessages = useCallback(async (recipientAddress) => {
+    if (!userAddress || !suiClient) return [];
 
     try {
-      // Create extended client with messaging capability
-      const extendedClient = new SuiClient({
-        url: "https://fullnode.testnet.sui.io:443",
+      const events = await suiClient.queryEvents({
+        query: {
+          MoveEventType: MESSAGE_SENT_EVENT,
+        },
+        limit: 100,
+        order: "ascending",
       });
-      
-      // Register messaging extension
-      const messagingExtension = SuiStackMessagingClient.experimental_asClientExtension({
-        packageConfig: TESTNET_MESSAGING_PACKAGE_CONFIG,
-      });
-      
-      const client = messagingExtension.register(extendedClient);
-      setMessagingClient(client);
-      setClientReady(true);
-      console.log("✅ Messaging client initialized");
+
+      const relevantMessages = events.data
+        .filter(event => {
+          const { sender, recipient } = event.parsedJson || {};
+          return (
+            (sender === userAddress && recipient === recipientAddress) ||
+            (sender === recipientAddress && recipient === userAddress)
+          );
+        })
+        .map(event => ({
+          id: event.id.txDigest + "_" + event.id.eventSeq,
+          sender: event.parsedJson.sender,
+          recipient: event.parsedJson.recipient,
+          content: event.parsedJson.content,
+          timestamp: parseInt(event.parsedJson.timestamp),
+          txDigest: event.id.txDigest,
+          onChain: true,
+        }))
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+      const conversationKey = [userAddress, recipientAddress].sort().join("-");
+      setMessages(prev => ({
+        ...prev,
+        [conversationKey]: relevantMessages,
+      }));
+
+      return relevantMessages;
     } catch (error) {
-      console.warn("Messaging client oluşturma hatası:", error);
-      setClientReady(false);
-    }
-  }, [suiClient]);
-
-  // Local storage'dan mesajları yükle
-  useEffect(() => {
-    if (account?.address) {
-      const stored = localStorage.getItem(`${MESSAGES_STORAGE_KEY}_${account.address}`);
-      if (stored) {
-        try {
-          setMessages(JSON.parse(stored));
-        } catch (e) {
-          console.error("Mesajlar yüklenemedi:", e);
-        }
-      }
-    }
-  }, [account?.address]);
-
-  // Mesajları local storage'a kaydet
-  const saveMessages = useCallback((newMessages) => {
-    if (account?.address) {
-      localStorage.setItem(
-        `${MESSAGES_STORAGE_KEY}_${account.address}`,
-        JSON.stringify(newMessages)
-      );
-    }
-  }, [account?.address]);
-
-  // Kanalları getir (on-chain)
-  const fetchChannels = useCallback(async () => {
-    if (!messagingClient || !account?.address) return [];
-
-    setLoading(true);
-    try {
-      const result = await messagingClient.getChannelMemberships({
-        address: account.address,
-      });
-      setChannels(result?.data || []);
-      return result?.data || [];
-    } catch (error) {
-      console.error("Kanallar yüklenemedi:", error);
-      // Fallback: local storage'dan yükle
-      const stored = localStorage.getItem(`sui_channels_${account.address}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setChannels(parsed);
-        return parsed;
-      }
+      console.error("Failed to fetch on-chain messages:", error);
       return [];
-    } finally {
-      setLoading(false);
     }
-  }, [messagingClient, account?.address]);
+  }, [userAddress, suiClient]);
 
-  // Mesaj gönder (hybrid: on-chain attempt, fallback to local)
+  // Send message on-chain
   const sendMessage = useCallback(async (recipientAddress, content) => {
-    if (!account?.address) {
-      throw new Error("Cüzdan bağlı değil");
+    if (!userAddress) {
+      throw new Error("Wallet not connected");
+    }
+
+    if (!recipientAddress || !content?.trim()) {
+      throw new Error("Invalid parameters");
     }
 
     setLoading(true);
     try {
-      // Yeni mesajı oluştur
+      const tx = new Transaction();
+      
+      // Call the messaging module
+      tx.moveCall({
+        target: `${MESSAGING_PACKAGE_ID}::messaging::send_message`,
+        arguments: [
+          tx.pure.address(recipientAddress),
+          tx.pure.string(content.trim()),
+          tx.pure.u64(Date.now()),
+        ],
+      });
+
+      const result = await signAndExecute({
+        transaction: tx,
+      });
+
       const newMessage = {
-        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        sender: account.address,
+        id: result.digest + "_0",
+        sender: userAddress,
         recipient: recipientAddress,
-        content: content,
+        content: content.trim(),
         timestamp: Date.now(),
-        status: "sent",
+        txDigest: result.digest,
+        onChain: true,
       };
 
-      // On-chain göndermeyi dene (eğer client hazırsa ve channel varsa)
-      if (messagingClient && activeChannel) {
-        try {
-          // Channel-based mesaj gönderimi için gerekli bilgileri kontrol et
-          const channelId = activeChannel.channelId;
-          const memberCapId = activeChannel.memberCapId;
-          const encryptedKey = activeChannel.encryptedKey;
+      // Update local state
+      const conversationKey = [userAddress, recipientAddress].sort().join("-");
+      setMessages(prev => ({
+        ...prev,
+        [conversationKey]: [...(prev[conversationKey] || []), newMessage],
+      }));
 
-          if (channelId && memberCapId && encryptedKey) {
-            // Not: executeSendMessageTransaction bir signer gerektirir
-            // Bu örnek için local mode kullanıyoruz
-            console.log("On-chain mesaj gönderimi için channel bilgileri hazır");
-          }
-        } catch (onChainError) {
-          console.warn("On-chain mesaj gönderilemedi, local kayıt:", onChainError);
-        }
-      }
+      // Update conversations list
+      updateConversation(recipientAddress, newMessage);
 
-      // Mesajı local state ve storage'a ekle
-      const updatedMessages = [...messages, newMessage];
-      setMessages(updatedMessages);
-      saveMessages(updatedMessages);
-
-      console.log("Mesaj kaydedildi:", newMessage.id);
-      return { digest: newMessage.id, success: true };
+      return { digest: result.digest, success: true };
     } catch (error) {
-      console.error("Mesaj gönderme hatası:", error);
+      console.error("Failed to send message:", error);
       throw error;
     } finally {
       setLoading(false);
     }
-  }, [account?.address, messages, saveMessages, messagingClient, activeChannel]);
+  }, [userAddress, signAndExecute]);
 
-  // Konuşmayı aç
-  const openConversation = useCallback((recipientAddress) => {
-    if (!account?.address) return null;
+  // Update conversation in list
+  const updateConversation = useCallback((recipientAddress, lastMessage) => {
+    setConversations(prev => {
+      const existing = prev.find(c => 
+        c.participants?.includes(recipientAddress) && c.participants?.includes(userAddress)
+      );
 
-    const conversationId = [account.address, recipientAddress].sort().join("_");
+      if (existing) {
+        return prev.map(c => 
+          c === existing 
+            ? { ...c, lastMessage, updatedAt: Date.now() }
+            : c
+        ).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      }
+
+      return [{
+        id: `conv-${Date.now()}`,
+        participants: [userAddress, recipientAddress],
+        lastMessage,
+        updatedAt: Date.now(),
+      }, ...prev];
+    });
+  }, [userAddress]);
+
+  // Load all conversations from blockchain
+  const loadConversations = useCallback(async () => {
+    if (!userAddress || !suiClient) return;
+
+    setLoading(true);
+    try {
+      const events = await suiClient.queryEvents({
+        query: {
+          MoveEventType: MESSAGE_SENT_EVENT,
+        },
+        limit: 100,
+        order: "descending",
+      });
+
+      const conversationMap = new Map();
+      
+      events.data.forEach(event => {
+        const { sender, recipient, content, timestamp } = event.parsedJson || {};
+        
+        if (sender === userAddress || recipient === userAddress) {
+          const otherParty = sender === userAddress ? recipient : sender;
+          const key = [userAddress, otherParty].sort().join("-");
+          
+          const existing = conversationMap.get(key);
+          const msgTimestamp = parseInt(timestamp);
+          
+          if (!existing || msgTimestamp > existing.lastMessage.timestamp) {
+            conversationMap.set(key, {
+              id: key,
+              participants: [userAddress, otherParty],
+              lastMessage: {
+                sender,
+                recipient,
+                content,
+                timestamp: msgTimestamp,
+              },
+              updatedAt: msgTimestamp,
+            });
+          }
+        }
+      });
+
+      const convList = Array.from(conversationMap.values())
+        .sort((a, b) => b.updatedAt - a.updatedAt);
+
+      setConversations(convList);
+    } catch (error) {
+      console.error("Failed to load conversations:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [userAddress, suiClient]);
+
+  // Get messages for a specific conversation
+  const getConversationMessages = useCallback((recipientAddress) => {
+    if (!userAddress || !recipientAddress) return [];
+    const conversationKey = [userAddress, recipientAddress].sort().join("-");
+    return messages[conversationKey] || [];
+  }, [messages, userAddress]);
+
+  // Get all conversations
+  const getConversations = useCallback(() => {
+    return conversations;
+  }, [conversations]);
+
+  // Open a conversation
+  const openConversation = useCallback(async (recipientAddress) => {
+    if (!userAddress) return null;
+
+    const conversationId = [userAddress, recipientAddress].sort().join("-");
     
     setActiveChannel({
       id: conversationId,
-      participants: [account.address, recipientAddress],
+      participants: [userAddress, recipientAddress],
       recipientAddress,
     });
 
+    // Fetch messages for this conversation
+    await fetchOnChainMessages(recipientAddress);
+
     return conversationId;
-  }, [account?.address]);
+  }, [userAddress, fetchOnChainMessages]);
 
-  // Belirli bir konuşmanın mesajlarını filtrele
-  const getConversationMessages = useCallback((recipientAddress) => {
-    if (!account?.address || !recipientAddress) return [];
-    
-    return messages.filter(msg => 
-      (msg.sender === account.address && msg.recipient === recipientAddress) ||
-      (msg.sender === recipientAddress && msg.recipient === account.address)
-    ).sort((a, b) => a.timestamp - b.timestamp);
-  }, [messages, account?.address]);
-
-  // Konuşma listesini oluştur (mesajlardan)
-  const getConversations = useCallback(() => {
-    if (!account?.address) return [];
-
-    const conversationMap = new Map();
-
-    messages.forEach(msg => {
-      const otherAddress = msg.sender === account.address ? msg.recipient : msg.sender;
-      if (!otherAddress) return;
-
-      const existing = conversationMap.get(otherAddress);
-      if (!existing || existing.timestamp < msg.timestamp) {
-        conversationMap.set(otherAddress, {
-          id: [account.address, otherAddress].sort().join("_"),
-          participants: [account.address, otherAddress],
-          lastMessage: msg,
-          timestamp: msg.timestamp,
-        });
-      }
-    });
-
-    return Array.from(conversationMap.values()).sort((a, b) => b.timestamp - a.timestamp);
-  }, [messages, account?.address]);
+  // Fetch channels (alias for loadConversations)
+  const fetchChannels = useCallback(async () => {
+    return loadConversations();
+  }, [loadConversations]);
 
   const value = {
-    messagingClient,
-    clientReady,
-    userAddress: account?.address,
-    channels,
+    userAddress,
+    isConnected,
+    conversations,
     activeChannel,
     messages,
     loading,
     sendMessage,
     fetchChannels,
+    loadConversations,
     openConversation,
     getConversationMessages,
     getConversations,
     setActiveChannel,
+    fetchOnChainMessages,
   };
 
   return (
