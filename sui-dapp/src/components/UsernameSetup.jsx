@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
-const UsernameSetup = ({ address, onComplete }) => {
+const UsernameSetup = ({ address, onComplete, onCancel }) => {
   const [username, setUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -91,6 +91,17 @@ const UsernameSetup = ({ address, onComplete }) => {
               ) : (
                 "CREATE PROFILE"
               )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full font-mono h-12 text-base"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              GO BACK
             </Button>
           </form>
 

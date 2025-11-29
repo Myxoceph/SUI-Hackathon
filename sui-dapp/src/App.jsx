@@ -16,7 +16,7 @@ import "@mysten/dapp-kit/dist/index.css";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { showUsernameSetup, address, handleUsernameSetup } = useWallet();
+  const { showUsernameSetup, address, handleUsernameSetup, handleCancelSetup } = useWallet();
 
   return (
     <>
@@ -34,6 +34,7 @@ const AppContent = () => {
         <UsernameSetup 
           address={address} 
           onComplete={handleUsernameSetup}
+          onCancel={handleCancelSetup}
         />
       )}
       

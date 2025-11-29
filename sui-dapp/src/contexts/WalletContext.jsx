@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { useCurrentAccount, useSuiClient } from "@mysten/dapp-kit";
+import { useCurrentAccount, useSuiClient, useDisconnectWallet } from "@mysten/dapp-kit";
 import { getUserProfile, isNewUser } from "@/lib/userProfile";
 
 const WalletContext = createContext(null);
@@ -7,6 +7,7 @@ const WalletContext = createContext(null);
 export const WalletProvider = ({ children }) => {
   const account = useCurrentAccount();
   const client = useSuiClient();
+  const { mutate: disconnect } = useDisconnectWallet();
   const [balance, setBalance] = useState(null);
   const [contributions, setContributions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,13 @@ export const WalletProvider = ({ children }) => {
   const handleUsernameSetup = (userData) => {
     setUserProfile(userData);
     setShowUsernameSetup(false);
+  };
+
+  const handleCancelSetup = () => {
+    // Username setup iptal edilince wallet bağlantısını kes
+    disconnect();
+    setShowUsernameSetup(false);
+    setUserProfile(null);
   };
 
   const fetchWalletData = async () => {
@@ -89,6 +97,7 @@ export const WalletProvider = ({ children }) => {
     isNewUser: !userProfile && !!account,
     refreshData: fetchWalletData,
     handleUsernameSetup,
+    handleCancelSetup,
   };
 
   return (
