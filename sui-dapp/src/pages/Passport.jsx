@@ -171,7 +171,7 @@ const Passport = () => {
         <div className="space-y-2">
           <h2 className="text-2xl font-bold font-sans">Connect Your Wallet</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Connect your Sui wallet to view your project portfolio and build your on-chain reputation.
+            Connect your Sui wallet.
           </p>
         </div>
       </div>

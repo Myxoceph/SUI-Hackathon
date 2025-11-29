@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { ConnectButton, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { toast } from "sonner";
 import SuccessScreen from "@/components/SuccessScreen";
 import { PROJECT_TYPES } from "@/constants/forms";
@@ -82,12 +82,11 @@ const CreateProject = () => {
         <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center border border-border">
           <span className="text-3xl">🔒</span>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-2">
           <h2 className="text-2xl font-bold font-sans">Connect Your Wallet</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Connect your Sui wallet to submit projects on-chain.
+            Connect your Sui wallet.
           </p>
-          <ConnectButton className="font-mono" />
         </div>
       </div>
     );
