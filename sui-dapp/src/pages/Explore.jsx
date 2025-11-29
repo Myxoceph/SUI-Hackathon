@@ -39,7 +39,7 @@ const Explore = () => {
       // Wallet disconnected - clear endorsements
       setUserEndorsements(new Set());
     }
-  }, [address]); // Sadece address değiştiğinde çalışır
+  }, [address, projects]); // Address VE projects değiştiğinde çalışır
 
   const loadAllProjects = async (retryCount = 0) => {
     // Concurrent load varsa iptal et
@@ -232,6 +232,12 @@ const Explore = () => {
       return;
     }
 
+    // Double-click protection
+    if (endorsingId === projectId) {
+      console.log('Endorsement already in progress');
+      return;
+    }
+
     // Check if user is trying to endorse their own project
     const project = projects.find(p => p.id === projectId);
     if (project && address && project.owner.toLowerCase() === address.toLowerCase()) {
@@ -239,7 +245,7 @@ const Explore = () => {
       return;
     }
     
-    // Check if already endorsed
+    // Check if already endorsed (local state)
     if (userEndorsements.has(projectId)) {
       toast.error("You already endorsed this project!");
       return;
@@ -257,17 +263,33 @@ const Explore = () => {
       // Add to local endorsements set immediately
       setUserEndorsements(prev => new Set([...prev, projectId]));
       
-      // Reload projects after endorsement is confirmed
-      await loadAllProjects();
+      // Update project endorsement count locally
+      setProjects(prev => prev.map(p => 
+        p.id === projectId 
+          ? { ...p, endorsements: p.endorsements + 1 }
+          : p
+      ));
+      
+      // Reload projects after endorsement is confirmed (background refresh)
+      setTimeout(() => loadAllProjects(), 1000);
     } catch (error) {
       console.error("Endorsement error:", error);
+      
+      // Remove from local state if it was added prematurely
+      setUserEndorsements(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(projectId);
+        return newSet;
+      });
       
       // Parse Move abort error codes
       if (error.message?.includes("MoveAbort")) {
         if (error.message?.includes("3")) {
           toast.error("You cannot endorse your own project!");
         } else if (error.message?.includes("2")) {
-          toast.error("You already endorsed this project!");
+          toast.error("You already endorsed this project on-chain!");
+          // Keep it in local state since it's actually endorsed
+          setUserEndorsements(prev => new Set([...prev, projectId]));
         } else {
           toast.error("Endorsement failed: " + (error.message || "Unknown error"));
         }
