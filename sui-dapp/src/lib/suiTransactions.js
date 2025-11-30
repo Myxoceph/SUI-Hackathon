@@ -10,6 +10,9 @@ import { CONTRACTS } from "@/config/contracts";
 export const registerUsername = async (signAndExecute, username) => {
   const tx = new Transaction();
 
+  // Set reasonable gas budget (0.05 SUI = 50,000,000 MIST)
+  tx.setGasBudget(50000000);
+
   tx.moveCall({
     target: `${CONTRACTS.PACKAGE_ID}::username::register_username`,
     arguments: [
@@ -41,6 +44,9 @@ export const registerUsername = async (signAndExecute, username) => {
  */
 export const createProject = async (signAndExecute, project) => {
   const tx = new Transaction();
+
+  // Set gas budget
+  tx.setGasBudget(50000000);
 
   tx.moveCall({
     target: `${CONTRACTS.PACKAGE_ID}::contribution::create_project`,
@@ -83,6 +89,9 @@ export const mintContribution = createProject;
  */
 export const endorseProject = async (signAndExecute, projectId, projectOwner) => {
   const tx = new Transaction();
+
+  // Set gas budget
+  tx.setGasBudget(30000000);
 
   tx.moveCall({
     target: `${CONTRACTS.PACKAGE_ID}::contribution::endorse_project`,
@@ -235,17 +244,47 @@ export const getRegistryStats = async (client) => {
 };
 
 /**
- * Check if username is available
+ * Check if username is available on-chain
  * @param {Object} client - Sui client instance  
  * @param {string} username - Username to check
- * @returns {Promise<boolean>} True if available
+ * @returns {Promise<boolean>} True if available, false if taken
  */
 export const isUsernameAvailableOnChain = async (client, username) => {
   try {
-    // Query UsernameRegistry table (requires contract deployment)
-    return true;
+    // Get the UsernameRegistry object
+    const registry = await client.getObject({
+      id: CONTRACTS.USERNAME_REGISTRY,
+      options: { showContent: true },
+    });
+
+    if (!registry?.data?.content?.fields?.usernames) {
+      console.log("Registry not found or empty, username available");
+      return true;
+    }
+
+    // Check if username exists in the table
+    // Table is stored as dynamic fields
+    const tableId = registry.data.content.fields.usernames.fields.id.id;
+    
+    try {
+      // Try to get the dynamic field for this username
+      const dynamicField = await client.getDynamicFieldObject({
+        parentId: tableId,
+        name: {
+          type: "0x1::string::String",
+          value: username,
+        },
+      });
+      
+      // If we got a result, username is taken
+      return dynamicField.error !== undefined;
+    } catch (error) {
+      // If error (not found), username is available
+      return true;
+    }
   } catch (error) {
-    console.error("Error checking username:", error);
-    return false;
+    console.error("Error checking username on-chain:", error);
+    // On error, assume available to not block users
+    return true;
   }
 };

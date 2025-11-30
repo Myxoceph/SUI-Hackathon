@@ -3,18 +3,27 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "resolutions": {
+    "@mysten/sui": "1.43.1"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:prod": "NODE_ENV=production tsc && vite build && npm run postbuild",
+    "postbuild": "cp public/404.html dist/404.html 2>/dev/null || copy public\\404.html dist\\404.html || true",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules/.vite",
+    "deploy:walrus": "npm run build:prod && site-builder publish --epochs 10 dist/",
+    "deploy:walrus:30d": "npm run build:prod && site-builder publish --epochs 30 dist/"
   },
   "dependencies": {
     "@mysten/dapp-kit": "0.19.6",
     "@mysten/enoki": "^0.12.12",
     "@mysten/messaging": "^0.1.0",
     "@mysten/sui": "1.43.1",
-    "@mysten/zklogin": "^0.8.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-select": "^2.2.6",
@@ -28,6 +37,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.555.0",
     "next-themes": "^0.4.6",
+    "poseidon-lite": "^0.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.9.6",

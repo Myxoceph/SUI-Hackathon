@@ -28,9 +28,9 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-8 max-w-7xl mx-auto">
+      <div className="container flex h-16 items-center gap-4 px-4 md:px-8 max-w-7xl mx-auto">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0">
           <img 
             src="/Logo.png" 
             alt={APP_NAME} 
@@ -42,27 +42,29 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-2 overflow-x-auto flex-1">
           {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
             <Link
               key={path}
               to={path}
               className={cn(
-                "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2",
-                location.pathname === path ? "text-foreground" : "text-muted-foreground"
+                "text-xs font-medium transition-colors hover:text-primary flex items-center gap-1.5 px-2 py-1.5 rounded-md whitespace-nowrap",
+                location.pathname === path 
+                  ? "text-foreground bg-muted" 
+                  : "text-muted-foreground hover:bg-muted/50"
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-3.5 w-3.5" />
               {label}
             </Link>
           ))}
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 shrink-0">
           <ConnectButton className="font-mono text-xs" />
           
-          <button className="md:hidden p-2" onClick={toggleMenu}>
+          <button className="lg:hidden p-2" onClick={toggleMenu}>
             {isMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
@@ -70,16 +72,16 @@ const Navbar = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden border-b border-border bg-background p-4">
-          <div className="flex flex-col gap-4">
+        <div className="lg:hidden border-b border-border bg-background p-4">
+          <div className="flex flex-col gap-2">
             {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
                 to={path}
                 onClick={closeMenu}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 p-2 hover:bg-muted",
-                  location.pathname === path ? "text-foreground bg-muted" : "text-muted-foreground"
+                  "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2 p-2 rounded-md",
+                  location.pathname === path ? "text-foreground bg-muted" : "text-muted-foreground hover:bg-muted/50"
                 )}
               >
                 <Icon className="h-4 w-4" />

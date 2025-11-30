@@ -1,6 +1,6 @@
 /**
  * Backend Sponsorship Service Integration
- * Walrus deployment için backend ile iletişim
+ * Communication with backend for Walrus deployment
  */
 
 import { Transaction } from '@mysten/sui/transactions';

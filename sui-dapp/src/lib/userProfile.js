@@ -70,3 +70,24 @@ export const isUsernameTaken = (username) => {
   
   return false;
 };
+
+// Get all users
+export const getAllUsers = () => {
+  const users = [];
+  
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('user_')) {
+      try {
+        const userData = JSON.parse(localStorage.getItem(key));
+        if (userData?.username) {
+          users.push(userData);
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }
+  
+  return users;
+};

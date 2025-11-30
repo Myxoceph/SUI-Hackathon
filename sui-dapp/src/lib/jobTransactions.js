@@ -10,6 +10,9 @@ import { CONTRACTS, JOBS_CONFIG } from "@/config/contracts";
 export const createJob = async (signAndExecute, jobData) => {
   const tx = new Transaction();
 
+  // Set gas budget
+  tx.setGasBudget(50000000);
+
   tx.moveCall({
     target: `${JOBS_CONFIG.PACKAGE_ID}::jobs::create_job`,
     arguments: [
@@ -46,6 +49,9 @@ export const createJob = async (signAndExecute, jobData) => {
 export const applyForJob = async (signAndExecute, jobId, coverLetter) => {
   const tx = new Transaction();
 
+  // Set gas budget
+  tx.setGasBudget(30000000);
+
   tx.moveCall({
     target: `${JOBS_CONFIG.PACKAGE_ID}::jobs::apply_for_job`,
     arguments: [
@@ -80,6 +86,9 @@ export const applyForJob = async (signAndExecute, jobId, coverLetter) => {
 export const assignJob = async (signAndExecute, jobId, workerAddress) => {
   const tx = new Transaction();
 
+  // Set gas budget
+  tx.setGasBudget(30000000);
+
   tx.moveCall({
     target: `${JOBS_CONFIG.PACKAGE_ID}::jobs::assign_job`,
     arguments: [
@@ -113,6 +122,9 @@ export const assignJob = async (signAndExecute, jobId, workerAddress) => {
 export const confirmJobCompletion = async (signAndExecute, jobId) => {
   const tx = new Transaction();
 
+  // Set gas budget
+  tx.setGasBudget(30000000);
+
   tx.moveCall({
     target: `${JOBS_CONFIG.PACKAGE_ID}::jobs::confirm_completion`,
     arguments: [
@@ -144,6 +156,9 @@ export const confirmJobCompletion = async (signAndExecute, jobId) => {
  */
 export const cancelJob = async (signAndExecute, jobId) => {
   const tx = new Transaction();
+
+  // Set gas budget
+  tx.setGasBudget(20000000);
 
   tx.moveCall({
     target: `${JOBS_CONFIG.PACKAGE_ID}::jobs::cancel_job`,

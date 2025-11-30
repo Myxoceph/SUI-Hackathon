@@ -2,7 +2,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { networkConfig } from "@/config/networkConfig";
+import { TIME } from "@/config/constants";
 import { WalletProvider as CustomWalletProvider, useWallet } from "@/contexts/WalletContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
 import Passport from "@/pages/Passport";
@@ -10,6 +12,7 @@ import CreateProject from "@/pages/CreateProject";
 import Explore from "@/pages/Explore";
 import Jobs from "@/pages/Jobs";
 import Leaderboard from "@/pages/Leaderboard";
+import Community from "@/pages/Community";
 import Settings from "@/pages/Settings";
 import AuthCallback from "@/pages/AuthCallback";
 import RegisterEnokiWallets from "@/components/RegisterEnokiWallets";
@@ -24,8 +27,8 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      staleTime: 60 * 1000, // 1 minute
-      gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+      staleTime: TIME.QUERY_STALE_TIME,
+      gcTime: TIME.QUERY_CACHE_TIME,
     },
   },
 });
@@ -46,6 +49,7 @@ const AppContent = () => {
               <Route path="/explore" element={<Explore />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/community" element={<Community />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
@@ -67,20 +71,22 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
-      <RegisterEnokiWallets />
-      <WalletProvider autoConnect>
-        <CustomWalletProvider>
-          <MessagingProvider>
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </MessagingProvider>
-        </CustomWalletProvider>
-      </WalletProvider>
-    </SuiClientProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
+        <RegisterEnokiWallets />
+        <WalletProvider autoConnect>
+          <CustomWalletProvider>
+            <MessagingProvider>
+              <BrowserRouter basename="/">
+                <AppContent />
+              </BrowserRouter>
+            </MessagingProvider>
+          </CustomWalletProvider>
+        </WalletProvider>
+      </SuiClientProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

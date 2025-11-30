@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useCurrentAccount, useSuiClient, useDisconnectWallet } from "@mysten/dapp-kit";
 import { getUserProfile } from "@/lib/userProfile";
+import { getUserProjects } from "@/lib/suiTransactions";
+import { CONTRACTS } from "@/config/contracts";
+import { TIME, STORAGE_KEYS } from "@/config/constants";
+import { logError } from "@/lib/errors";
 
 const WalletContext = createContext(null);
 
@@ -65,18 +69,14 @@ export const WalletProvider = ({ children }) => {
       const balanceData = await Promise.race([
         client.getBalance({ owner: activeAddress }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Balance fetch timeout')), 10000)
+          setTimeout(() => reject(new Error('Balance fetch timeout')), TIME.FETCH_TIMEOUT)
         )
       ]);
       setBalance(balanceData.totalBalance);
 
-      // Fetch projects from blockchain or localStorage
-      const { getUserProjects } = await import("@/lib/suiTransactions");
-      const { CONTRACTS } = await import("@/config/contracts");
-      
       if (CONTRACTS.PACKAGE_ID === "TO_BE_DEPLOYED") {
         // Mock mode: load from localStorage
-        const stored = localStorage.getItem(`projects_${activeAddress}`);
+        const stored = localStorage.getItem(`${STORAGE_KEYS.PROJECTS_PREFIX}${activeAddress}`);
         if (stored) {
           setProjects(JSON.parse(stored));
         } else {
@@ -87,14 +87,13 @@ export const WalletProvider = ({ children }) => {
         const onChainProjects = await Promise.race([
           getUserProjects(client, activeAddress),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Projects fetch timeout')), 15000)
+            setTimeout(() => reject(new Error('Projects fetch timeout')), TIME.LONG_FETCH_TIMEOUT)
           )
         ]);
         setProjects(onChainProjects);
       }
     } catch (error) {
-      console.error("Error fetching wallet data:", error);
-      // Continue silently - don't disturb user
+      logError('WalletContext', error, { address: activeAddress });
     } finally {
       setLoading(false);
     }
@@ -112,21 +111,16 @@ export const WalletProvider = ({ children }) => {
 
     const updated = [...projects, newProject];
     setProjects(updated);
-    localStorage.setItem(`projects_${activeAddress}`, JSON.stringify(updated));
+    localStorage.setItem(`${STORAGE_KEYS.PROJECTS_PREFIX}${activeAddress}`, JSON.stringify(updated));
     
     return newProject;
   };
-
-  /**
-   * @deprecated Use addProject instead
-   */
-  const addContribution = addProject;
 
   const endorseProject = (projectId) => {
     // Find and update the project across all users
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('projects_')) {
+      if (key && key.startsWith(STORAGE_KEYS.PROJECTS_PREFIX)) {
         try {
           const data = JSON.parse(localStorage.getItem(key));
           const updated = data.map(p => 
@@ -135,34 +129,26 @@ export const WalletProvider = ({ children }) => {
               : p
           );
           
-          // Check if anything changed
           if (JSON.stringify(data) !== JSON.stringify(updated)) {
             localStorage.setItem(key, JSON.stringify(updated));
             
-            // If this is current user's projects, update state
-            if (key === `projects_${activeAddress}`) {
+            if (key === `${STORAGE_KEYS.PROJECTS_PREFIX}${activeAddress}`) {
               setProjects(updated);
             }
             break;
           }
         } catch (error) {
-          console.error('Error updating endorsement:', error);
+          logError('WalletContext', error, { action: 'endorseProject', projectId });
         }
       }
     }
   };
-
-  /**
-   * @deprecated Use endorseProject instead
-   */
-  const endorseContribution = endorseProject;
 
   const value = {
     account,
     address: activeAddress,
     balance,
     projects,
-    contributions: projects, // Backward compat
     loading,
     isConnected: !!activeAddress,
     userProfile,
@@ -173,8 +159,6 @@ export const WalletProvider = ({ children }) => {
     handleCancelSetup,
     addProject,
     endorseProject,
-    addContribution, // Backward compat
-    endorseContribution, // Backward compat
   };
 
   return (

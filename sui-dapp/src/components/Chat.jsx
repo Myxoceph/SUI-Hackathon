@@ -47,7 +47,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
     const result = await sendMessage(content);
     
     if (result) {
-      console.log("Mesaj gönderildi:", result.digest);
+      console.log("Message sent:", result.digest);
     }
   };
 
@@ -67,9 +67,9 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
     return (
       <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
         <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Cüzdan Bağlantısı Gerekli</h3>
-        <p className="text-muted-foreground text-sm">
-          Mesaj göndermek için lütfen cüzdanınızı bağlayın.
+        <h3 className="text-lg font-semibold mb-2">Wallet Connection Required</h3>
+        <p className="text-muted-foreground">
+          Please connect your wallet to send messages.
         </p>
       </div>
     );
@@ -109,9 +109,9 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
               <User className="h-8 w-8" />
             </div>
             <p className="font-medium mb-1">{formatAddress(recipientAddress)}</p>
-            <p className="text-muted-foreground text-sm mb-4">ile konuşma başlat</p>
+            <p className="text-muted-foreground text-sm mb-4">Start conversation with</p>
             <p className="text-xs text-muted-foreground">
-              Gönderdiğiniz mesajlar burada görünecek
+              Your sent messages will appear here
             </p>
           </div>
         ) : (
@@ -172,7 +172,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-muted-foreground hover:text-primary transition-colors"
-                        title="Transaction'ı görüntüle"
+                        title="View transaction"
                       >
                         <ExternalLink className="h-3 w-3" />
                       </a>
@@ -208,7 +208,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="Mesajınızı yazın..."
+            placeholder="Type your message..."
             disabled={sending}
             className="flex-1 rounded-full bg-muted/50 border-0 focus-visible:ring-1"
             autoComplete="off"

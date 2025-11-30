@@ -49,7 +49,7 @@ const Messages = () => {
     
     // SUI address validation (must start with 0x, 64+ characters)
     if (!newRecipientAddress.startsWith("0x") || newRecipientAddress.length < 66) {
-      alert("Geçerli bir SUI adresi girin (0x ile başlamalı)");
+      alert("Please enter a valid SUI address (must start with 0x)");
       return;
     }
 
@@ -65,12 +65,12 @@ const Messages = () => {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Mesajlaşmaya Başlayın</h2>
+            <h2 className="text-xl font-semibold mb-2">Start Messaging</h2>
             <p className="text-muted-foreground text-center mb-4">
-              On-chain mesajlaşma için cüzdanınızı bağlayın.
+              Connect your wallet for on-chain messaging.
             </p>
             <p className="text-xs text-muted-foreground">
-              Tüm mesajlar SUI blockchain üzerinde güvenli şekilde saklanır.
+              All messages are securely stored on the SUI blockchain.
             </p>
           </CardContent>
         </Card>
@@ -120,15 +120,15 @@ const Messages = () => {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <MessageSquare className="h-6 w-6" />
-            Mesajlar
+            Messan
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            SUI blockchain üzerinde güvenli mesajlaşma
+            Secure messaging on SUI blockchain
           </p>
         </div>
         <Button onClick={() => setShowNewChat(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          Yeni Sohbet
+          New Chat
         </Button>
       </div>
 
@@ -138,7 +138,7 @@ const Messages = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Yeni Sohbet Başlat
+              Start New Chat
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -146,19 +146,19 @@ const Messages = () => {
               <Input
                 value={newRecipientAddress}
                 onChange={(e) => setNewRecipientAddress(e.target.value)}
-                placeholder="Alıcı SUI adresi (0x...)"
+                placeholder="Recipient SUI address (0x...)"
                 className="font-mono text-sm"
                 onKeyPress={(e) => e.key === "Enter" && handleStartNewChat()}
               />
               <Button onClick={handleStartNewChat}>
-                Başlat
+                Start
               </Button>
               <Button variant="outline" onClick={() => setShowNewChat(false)}>
-                İptal
+                Cancel
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Mesaj göndermek istediğiniz kişinin SUI cüzdan adresini girin.
+              Enter the SUI wallet address of the person you want to message.
             </p>
           </CardContent>
         </Card>
@@ -170,7 +170,7 @@ const Messages = () => {
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Konuşma ara..."
+          placeholder="Search conversations..."
           className="pl-10"
         />
       </div>
@@ -187,9 +187,9 @@ const Messages = () => {
               <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
                 <MessageSquare className="h-8 w-8 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground font-medium mb-2">Henüz konuşma yok</p>
+              <p className="text-muted-foreground font-medium mb-2">No conversations yet</p>
               <p className="text-xs text-muted-foreground text-center max-w-sm">
-                "Yeni Sohbet" butonuna tıklayarak bir SUI adresine mesaj gönderebilirsiniz.
+                Click the "New Chat" button to send a message to a SUI address.
               </p>
             </CardContent>
           </Card>
@@ -235,11 +235,11 @@ const Messages = () => {
                       <p className="text-sm text-muted-foreground truncate">
                         {lastMsg ? (
                           <>
-                            {isLastMsgOwn && <span className="text-primary">Siz: </span>}
+                            {isLastMsgOwn && <span className="text-primary">You: </span>}
                             {lastMsg.content}
                           </>
                         ) : (
-                          <span className="italic">Konuşmayı başlat...</span>
+                          <span className="italic">Start the conversation...</span>
                         )}
                       </p>
                     </div>
@@ -253,13 +253,13 @@ const Messages = () => {
       {/* Info Footer */}
       <div className="mt-8 p-4 bg-muted/50 rounded-lg border">
         <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
-          🔐 On-Chain Mesajlaşma
+          🔐 On-Chain Messaging
         </h4>
         <ul className="text-xs text-muted-foreground space-y-1">
-          <li>• Tüm mesajlar SUI blockchain üzerinde saklanır</li>
-          <li>• Mesaj göndermek için gas ücreti gerekir</li>
-          <li>• Mesajlar değiştirilemez ve kalıcıdır</li>
-          <li>• Transaction ID ile her mesaj doğrulanabilir</li>
+          <li>• All messages are stored on the SUI blockchain</li>
+          <li>• Gas fees required to send messages</li>
+          <li>• Messages are immutable and permanent</li>
+          <li>• Every message can be verified with a transaction ID</li>
         </ul>
       </div>
     </div>
