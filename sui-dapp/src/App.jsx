@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import Passport from "@/pages/Passport";
 import CreateProject from "@/pages/CreateProject";
 import Explore from "@/pages/Explore";
+import Jobs from "@/pages/Jobs";
 import Leaderboard from "@/pages/Leaderboard";
 import Settings from "@/pages/Settings";
 import AuthCallback from "@/pages/AuthCallback";
@@ -43,6 +44,7 @@ const AppContent = () => {
               <Route path="/passport" element={<Passport />} />
               <Route path="/contribute" element={<CreateProject />} />
               <Route path="/explore" element={<Explore />} />
+              <Route path="/jobs" element={<Jobs />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<Settings />} />

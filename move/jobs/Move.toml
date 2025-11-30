@@ -1,0 +1,7 @@
+[package]
+name = "peerflow_jobs"
+version = "0.1.0"
+edition = "2024.beta"
+
+[addresses]
+peerflow_jobs = "0x0"
