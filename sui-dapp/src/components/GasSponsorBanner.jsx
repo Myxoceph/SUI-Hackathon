@@ -1,6 +1,7 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Fuel, ExternalLink } from 'lucide-react';
+import { Fuel, ExternalLink, Server } from 'lucide-react';
+import { getSponsorshipMode } from '@/lib/backendSponsorship';
 
 /**
  * Banner for gas sponsorship status
@@ -13,14 +14,21 @@ function GasSponsorBanner({
   address,
   onRequestGas 
 }) {
+  const sponsorshipMode = getSponsorshipMode();
   
-  // Enoki sponsorship aktif - hiçbir şey gösterme
-  if (isSponsored) {
+  // Backend or Enoki sponsorship aktif
+  if (isSponsored || sponsorshipMode.mode !== 'none') {
+    const isBackend = sponsorshipMode.mode === 'backend';
+    
     return (
       <Alert className="border-green-500/50 bg-green-500/10">
-        <Fuel className="h-4 w-4 text-green-500" />
+        {isBackend ? (
+          <Server className="h-4 w-4 text-green-500" />
+        ) : (
+          <Fuel className="h-4 w-4 text-green-500" />
+        )}
         <AlertDescription className="text-sm">
-          ⚡ <strong>Gas Sponsored</strong> - Transactions are free!
+          ⚡ <strong>{sponsorshipMode.label}</strong> - {sponsorshipMode.description}
         </AlertDescription>
       </Alert>
     );

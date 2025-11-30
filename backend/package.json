@@ -1,0 +1,21 @@
+{
+  "name": "sui-backend-sponsor",
+  "version": "1.0.0",
+  "description": "Enoki Gas Sponsorship Backend Service",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["sui", "enoki", "gas-sponsorship"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@mysten/enoki": "^0.12.12",
+    "@mysten/sui": "^1.43.1",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
+  }
+}
