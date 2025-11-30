@@ -15,7 +15,7 @@ export default defineConfig({
   },
   server: {
     headers: {
-      // Enoki OAuth popup'ları için COOP hatası çözümü
+      // Fix COOP error for Enoki OAuth popups
       'Cross-Origin-Opener-Policy': 'unsafe-none',
       'Cross-Origin-Embedder-Policy': 'unsafe-none',
     },

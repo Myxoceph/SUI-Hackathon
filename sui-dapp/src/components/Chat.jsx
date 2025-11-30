@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { useMessages } from "@/hooks/useMessages";
 
 /**
- * Chat Component - On-chain mesajlaşma UI
- * SUI blockchain üzerinde mesaj gönderme ve görüntüleme
+ * Chat Component - On-chain messaging UI
+ * Send and view messages on SUI blockchain
  */
 const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => {
   const [inputMessage, setInputMessage] = useState("");
@@ -26,7 +26,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
     clearError,
   } = useMessages(recipientAddress);
 
-  // Mesajlar değiştiğinde en alta scroll
+  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -51,7 +51,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
     }
   };
 
-  // Adres rengini belirle (her adres için tutarlı renk)
+  // Get consistent color for each address
   const getAddressColor = (address) => {
     if (!address) return "bg-gray-500";
     const colors = [
@@ -62,7 +62,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
     return colors[hash % colors.length];
   };
 
-  // Bağlı değilse uyarı göster
+  // Show warning if not connected
   if (!isConnected) {
     return (
       <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
@@ -128,7 +128,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
                   isOwn ? "justify-end" : "justify-start"
                 )}
               >
-                {/* Avatar (sadece karşı taraf için) */}
+                {/* Avatar (only for other party) */}
                 {!isOwn && (
                   <div className="w-8 flex-shrink-0">
                     {showAvatar && (
@@ -140,7 +140,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
                 )}
 
                 <div className={cn("max-w-[70%] flex flex-col", isOwn ? "items-end" : "items-start")}>
-                  {/* Gönderen bilgisi (sadece karşı taraf için) */}
+                  {/* Sender info (only for other party) */}
                   {!isOwn && showAvatar && (
                     <span className="text-xs text-muted-foreground mb-1 ml-1">
                       {formatAddress(senderAddress)}
@@ -183,7 +183,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
                   </div>
                 </div>
 
-                {/* Sağ tarafta boşluk (kendi mesajımız için) */}
+                {/* Right side spacing (for own messages) */}
                 {isOwn && <div className="w-8 flex-shrink-0" />}
               </div>
             );

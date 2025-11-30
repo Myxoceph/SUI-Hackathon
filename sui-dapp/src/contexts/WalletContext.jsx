@@ -34,11 +34,11 @@ export const WalletProvider = ({ children }) => {
     const profile = getUserProfile(activeAddress);
     
     if (!profile) {
-      // Yeni kullanıcı - username setup göster
+      // New user - show username setup
       setShowUsernameSetup(true);
       setUserProfile(null);
     } else {
-      // Mevcut kullanıcı - profilini yükle
+      // Existing user - load profile
       setUserProfile(profile);
       setShowUsernameSetup(false);
     }
@@ -50,7 +50,7 @@ export const WalletProvider = ({ children }) => {
   };
 
   const handleCancelSetup = () => {
-    // Username setup iptal edilince bağlantıyı kes
+    // Disconnect when username setup is cancelled
     disconnect();
     setShowUsernameSetup(false);
     setUserProfile(null);
@@ -94,7 +94,7 @@ export const WalletProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error fetching wallet data:", error);
-      // Sessizce devam et - kullanıcıyı rahatsız etme
+      // Continue silently - don't disturb user
     } finally {
       setLoading(false);
     }

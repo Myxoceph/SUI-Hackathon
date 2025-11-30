@@ -14,7 +14,7 @@ function GasSponsorBanner({
   onRequestGas 
 }) {
   
-  // Enoki sponsorship aktif - hiçbir şey gösterme
+  // Enoki sponsorship active - show sponsored message
   if (isSponsored) {
     return (
       <Alert className="border-green-500/50 bg-green-500/10">
@@ -26,7 +26,7 @@ function GasSponsorBanner({
     );
   }
 
-  // User'ın gas'ı var
+  // User has gas
   if (hasGas) {
     return (
       <Alert className="border-blue-500/50 bg-blue-500/10">
@@ -38,7 +38,7 @@ function GasSponsorBanner({
     );
   }
 
-  // Gas yok - Faucet link göster
+  // No gas - Show faucet link
   return (
     <Alert className="border-orange-500/50 bg-orange-500/10">
       <Fuel className="h-4 w-4 text-orange-500" />

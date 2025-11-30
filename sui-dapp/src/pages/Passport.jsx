@@ -130,12 +130,12 @@ const Passport = () => {
       fetchEndorsements();
       fetchEndorsementsGiven();
       
-      // Daha uzun interval - sadece gerektiğinde refresh
+      // Longer interval - only refresh when needed
       const interval = setInterval(() => {
         refreshData();
         fetchEndorsements();
         fetchEndorsementsGiven();
-      }, 60000); // 1 dakika - agresif değil
+      }, 60000); // 1 minute - not aggressive
 
       return () => clearInterval(interval);
     }

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThumbsUp, ExternalLink, Info } from "lucide-react";
-import { formatAddress } from "@/lib/formatters";
+import { formatAddress, formatTimeAgo } from "@/lib/formatters";
 import {
   Tooltip,
   TooltipContent,
@@ -25,9 +25,7 @@ const ProjectCard = ({
 }) => {
   const isOwnContribution = currentUserAddress && owner && 
     currentUserAddress.toLowerCase() === owner.toLowerCase();
-  const timeAgo = createdAt 
-    ? new Date(createdAt).toLocaleDateString()
-    : 'Recently';
+  const timeAgo = formatTimeAgo(createdAt);
   
   const shortAddress = owner ? formatAddress(owner) : 'anonymous';
 
