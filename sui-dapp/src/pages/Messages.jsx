@@ -120,7 +120,7 @@ const Messages = () => {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <MessageSquare className="h-6 w-6" />
-            Messan
+            Message
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             Secure messaging on SUI blockchain
