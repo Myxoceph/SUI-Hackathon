@@ -16,7 +16,7 @@ function GasSponsorBanner({
 }) {
   const sponsorshipMode = getSponsorshipMode();
   
-  // Backend or Enoki sponsorship aktif
+  // Backend or Enoki sponsorship active
   if (isSponsored || sponsorshipMode.mode !== 'none') {
     const isBackend = sponsorshipMode.mode === 'backend';
     
