@@ -32,6 +32,7 @@ const Jobs = () => {
   const [userApplications, setUserApplications] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [jobApplicants, setJobApplicants] = useState({}); // jobId -> [addresses]
 
   useEffect(() => {
     loadAllJobs();
@@ -72,6 +73,12 @@ const Jobs = () => {
         order: 'descending',
       });
 
+      // Build a map of job_id -> event timestamp
+      const jobTimestamps = {};
+      events.data.forEach(event => {
+        jobTimestamps[event.parsedJson.job_id] = parseInt(event.timestampMs || Date.now());
+      });
+
       const jobIds = events.data.map(event => event.parsedJson.job_id);
 
       if (jobIds.length === 0) {
@@ -92,19 +99,35 @@ const Jobs = () => {
         .filter(obj => obj.data?.content)
         .map(obj => {
           const fields = obj.data.content.fields || {};
+          const jobId = obj.data.objectId;
+          
+          // Parse Option<address> - can be in different formats
+          let assignedTo = null;
+          if (fields.assigned_to) {
+            // Could be { Some: "0x..." } or { vec: ["0x..."] } or just the address
+            if (typeof fields.assigned_to === 'string') {
+              assignedTo = fields.assigned_to;
+            } else if (fields.assigned_to.Some) {
+              assignedTo = fields.assigned_to.Some;
+            } else if (fields.assigned_to.vec && fields.assigned_to.vec.length > 0) {
+              assignedTo = fields.assigned_to.vec[0];
+            }
+          }
+          
           return {
-            id: obj.data.objectId,
+            id: jobId,
             owner: fields.owner,
             title: fields.title,
             description: fields.description,
             tags: fields.tags || [],
             budgetSui: parseInt(fields.budget_sui || "0"),
             status: parseInt(fields.status || "0"),
-            assignedTo: fields.assigned_to?.Some || null,
+            assignedTo,
             ownerConfirmed: fields.owner_confirmed || false,
             workerConfirmed: fields.worker_confirmed || false,
             applicantCount: parseInt(fields.applicant_count || "0"),
-            createdAt: parseInt(fields.created_at || "0"),
+            // Use event timestamp (milliseconds) instead of epoch number
+            createdAt: jobTimestamps[jobId] || Date.now(),
           };
         });
 
@@ -360,6 +383,55 @@ const Jobs = () => {
     }
   };
 
+  // Load applicants for a specific job from on-chain registry
+  const loadJobApplicants = async (jobId) => {
+    if (isJobsDemoMode()) {
+      // Demo mode - return mock applicants
+      setJobApplicants(prev => ({
+        ...prev,
+        [jobId]: [
+          '0x1234567890abcdef1234567890abcdef12345678',
+          '0xabcdef1234567890abcdef1234567890abcdef12',
+          '0x9876543210fedcba9876543210fedcba98765432',
+        ].slice(0, jobs.find(j => j.id === jobId)?.applicantCount || 3)
+      }));
+      return;
+    }
+
+    try {
+      // Get registry object to read applicants table
+      const registry = await client.getObject({
+        id: CONTRACTS.JOBS_REGISTRY,
+        options: { showContent: true },
+      });
+
+      const applicantsTableId = registry.data?.content?.fields?.applicants?.fields?.id?.id;
+      if (!applicantsTableId) {
+        console.error('Could not find applicants table');
+        return;
+      }
+
+      // Get the applicants vector for this job from dynamic field
+      const applicantsField = await client.getDynamicFieldObject({
+        parentId: applicantsTableId,
+        name: { type: "0x2::object::ID", value: jobId },
+      });
+
+      const applicantsList = applicantsField.data?.content?.fields?.value || [];
+      
+      setJobApplicants(prev => ({
+        ...prev,
+        [jobId]: applicantsList
+      }));
+    } catch (error) {
+      console.error('Error loading applicants:', error);
+      setJobApplicants(prev => ({
+        ...prev,
+        [jobId]: []
+      }));
+    }
+  };
+
   // Filter jobs based on tab and search
   const filteredJobs = jobs.filter(job => {
     // Tab filter
@@ -464,6 +536,8 @@ const Jobs = () => {
                   onApply={handleApply}
                   onAssign={handleAssign}
                   onConfirmCompletion={handleConfirmCompletion}
+                  onLoadApplicants={loadJobApplicants}
+                  applicants={jobApplicants[job.id]}
                 />
               ))
             ) : (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -8,9 +8,10 @@ import {
   CheckCircle2, 
   Send,
   User,
-  Loader2
+  Loader2,
+  X
 } from "lucide-react";
-import { formatAddress, formatSui } from "@/lib/formatters";
+import { formatAddress, formatSui, formatTimeAgo } from "@/lib/formatters";
 import { JOB_STATUS, JOB_STATUS_LABELS } from "@/config/contracts";
 import {
   Dialog,
@@ -31,9 +32,13 @@ const JobCard = ({
   onApply,
   onAssign,
   onConfirmCompletion,
+  onLoadApplicants,
+  applicants,
 }) => {
   const [showApplyModal, setShowApplyModal] = useState(false);
+  const [showApplicantsModal, setShowApplicantsModal] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
+  const [loadingApplicants, setLoadingApplicants] = useState(false);
 
   const {
     id,
@@ -55,9 +60,8 @@ const JobCard = ({
   const isAssignedWorker = currentUserAddress && assignedTo && 
     currentUserAddress.toLowerCase() === assignedTo.toLowerCase();
 
-  const timeAgo = createdAt 
-    ? new Date(createdAt).toLocaleDateString()
-    : 'Recently';
+  // Format time - createdAt might be epoch number or timestamp
+  const timeAgo = formatTimeAgo(createdAt);
   
   const shortAddress = owner ? formatAddress(owner) : 'anonymous';
   const budgetFormatted = formatSui(budgetSui);
@@ -163,6 +167,9 @@ const JobCard = ({
             {isOwner && (
               <Badge variant="secondary" className="text-xs">YOU</Badge>
             )}
+            {isAssignedWorker && (
+              <Badge variant="secondary" className="text-xs bg-blue-500/20 text-blue-500">ASSIGNED TO YOU</Badge>
+            )}
           </div>
           
           <div className="flex gap-2">
@@ -208,14 +215,22 @@ const JobCard = ({
               </Button>
             )}
 
-            {/* Owner: View Applicants (placeholder) */}
+            {/* Owner: View Applicants */}
             {isOwner && status === JOB_STATUS.OPEN && applicantCount > 0 && (
               <Button 
                 size="sm" 
                 variant="ghost"
                 className="h-8 text-xs font-mono rounded-none"
+                onClick={async () => {
+                  setShowApplicantsModal(true);
+                  if (onLoadApplicants) {
+                    setLoadingApplicants(true);
+                    await onLoadApplicants(id);
+                    setLoadingApplicants(false);
+                  }
+                }}
               >
-                View Applicants
+                View Applicants ({applicantCount})
               </Button>
             )}
           </div>
@@ -275,6 +290,70 @@ const JobCard = ({
               ) : (
                 'Submit Application'
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Applicants Modal */}
+      <Dialog open={showApplicantsModal} onOpenChange={setShowApplicantsModal}>
+        <DialogContent className="rounded-none border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-sans">Job Applicants</DialogTitle>
+            <DialogDescription className="font-mono text-xs">
+              {applicantCount} applicant{applicantCount !== 1 ? 's' : ''} for "{title}"
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-2 py-4 max-h-[300px] overflow-y-auto">
+            {loadingApplicants ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : applicants && applicants.length > 0 ? (
+              applicants.map((applicant, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center justify-between p-3 border border-border hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 bg-muted rounded-full border border-border flex items-center justify-center">
+                      <User className="h-4 w-4" />
+                    </div>
+                    <span className="font-mono text-sm">{formatAddress(applicant)}</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs font-mono rounded-none"
+                    onClick={() => {
+                      onAssign(id, applicant);
+                      setShowApplicantsModal(false);
+                    }}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      'Assign'
+                    )}
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No applicants yet</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowApplicantsModal(false)}
+              className="rounded-none w-full"
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
