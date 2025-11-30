@@ -7,10 +7,10 @@ import { useEffect } from 'react';
  */
 function AuthCallback() {
   useEffect(() => {
-    // URL hash'i parent window'a gönder ve kapat
+    // Send URL hash to parent window and close
     if (window.opener) {
       try {
-        // Hash'i parent'a gönder
+        // Send hash to parent
         const hash = window.location.hash;
         if (hash) {
           window.opener.postMessage(
@@ -19,7 +19,7 @@ function AuthCallback() {
           );
         }
         
-        // Popup'ı kapat
+        // Close popup
         setTimeout(() => {
           window.close();
         }, 500);
@@ -27,7 +27,7 @@ function AuthCallback() {
         console.error('Error handling auth callback:', error);
       }
     } else {
-      // Popup değilse ana sayfaya yönlendir
+      // Redirect to home if not a popup
       window.location.href = '/';
     }
   }, []);

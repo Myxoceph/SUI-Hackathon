@@ -9,7 +9,7 @@ import { useMessages } from "@/hooks/useMessages";
 import Chat from "@/components/Chat";
 
 /**
- * Messages Page - On-chain mesajlaşma sayfası
+ * Messages Page - On-chain messaging
  */
 const Messages = () => {
   const { isConnected, address } = useWallet();
@@ -25,14 +25,14 @@ const Messages = () => {
   const [showNewChat, setShowNewChat] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Sayfa yüklendiğinde konuşmaları getir
+  // Load conversations on page load
   useEffect(() => {
     if (isConnected) {
       loadConversations();
     }
   }, [isConnected, loadConversations]);
 
-  // Adres rengini belirle (tutarlı renk)
+  // Get consistent color for address
   const getAddressColor = (addr) => {
     if (!addr) return "bg-gray-500";
     const colors = [
@@ -43,11 +43,11 @@ const Messages = () => {
     return colors[hash % colors.length];
   };
 
-  // Yeni konuşma başlat
+  // Start new conversation
   const handleStartNewChat = () => {
     if (!newRecipientAddress.trim()) return;
     
-    // SUI adresi validasyonu (0x ile başlamalı, 64+ karakter)
+    // SUI address validation (must start with 0x, 64+ characters)
     if (!newRecipientAddress.startsWith("0x") || newRecipientAddress.length < 66) {
       alert("Geçerli bir SUI adresi girin (0x ile başlamalı)");
       return;
@@ -58,7 +58,7 @@ const Messages = () => {
     setShowNewChat(false);
   };
 
-  // Bağlı değilse
+  // Not connected
   if (!isConnected) {
     return (
       <div className="container max-w-4xl mx-auto py-8 px-4">
@@ -217,7 +217,7 @@ const Messages = () => {
                       <User className="h-6 w-6" />
                     </div>
                     
-                    {/* İçerik */}
+                    {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <p className="font-semibold truncate">

@@ -3,8 +3,8 @@ import { useSuiClientContext } from '@mysten/dapp-kit';
 import { registerEnokiWallets } from '@mysten/enoki';
 
 /**
- * Enoki wallets'ı dapp-kit wallet listesine ekler
- * Bu component WalletProvider'dan önce render edilmeli
+ * Adds Enoki wallets to dapp-kit wallet list
+ * This component should render before WalletProvider
  */
 function RegisterEnokiWallets() {
   const { client, network } = useSuiClientContext();
@@ -43,14 +43,14 @@ function RegisterEnokiWallets() {
       console.log('✅ Enoki wallets registered successfully');
       console.log('💰 Gas sponsorship: Check Enoki Portal configuration');
       
-      // Cleanup: component unmount olunca wallet'ları kaldır
+      // Cleanup: unregister wallets on component unmount
       return unregister;
     } catch (error) {
       console.error('❌ Error registering Enoki wallets:', error);
     }
   }, [client, network]);
   
-  return null; // Bu component UI render etmez
+  return null; // This component doesn't render UI
 }
 
 export default RegisterEnokiWallets;

@@ -27,19 +27,19 @@ const Explore = () => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, []); // Empty dependency - sadece mount/unmount'ta çalışır
+  }, []); // Empty dependency - only runs on mount/unmount
 
-  // Wallet değiştiğinde projeleri yeniden yükle (endorsement check içinde)
+  // Reload projects when wallet changes (inside endorsement check)
   useEffect(() => {
     if (address && projects.length > 0) {
-      // Sadece endorsement check yap, projeler zaten yüklü
+      // Only check endorsements, projects already loaded
       const projectIds = projects.map(p => p.id);
       checkUserEndorsements(projectIds);
     } else if (!address) {
       // Wallet disconnected - clear endorsements
       setUserEndorsements(new Set());
     }
-  }, [address, projects]); // Address VE projects değiştiğinde çalışır
+  }, [address, projects]); // Runs when address AND projects change
 
   const loadAllProjects = async (retryCount = 0) => {
     // Concurrent load varsa iptal et
@@ -73,6 +73,13 @@ const Explore = () => {
           order: 'descending',
         });
 
+        // Build a map of project_id -> event timestamp
+        const projectTimestamps = {};
+        events.data.forEach(event => {
+          const projectId = event.parsedJson.project_id || event.parsedJson.contribution_id;
+          projectTimestamps[projectId] = parseInt(event.timestampMs || Date.now());
+        });
+
         // Get project IDs from events
         const projectIds = events.data.map(event => event.parsedJson.project_id || event.parsedJson.contribution_id);
 
@@ -94,15 +101,17 @@ const Explore = () => {
           .filter(obj => obj.data?.content)
           .map(obj => {
             const fields = obj.data.content.fields || {};
+            const projectId = obj.data.objectId;
             return {
-              id: obj.data.objectId,
+              id: projectId,
               owner: fields.owner,
               type: fields.project_type || fields.contribution_type,
               title: fields.title,
               description: fields.description,
               proofLink: fields.proof_link,
               endorsements: parseInt(fields.endorsement_count || fields.endorsements || "0"),
-              createdAt: parseInt(fields.created_at || "0"),
+              // Use event timestamp (milliseconds) instead of epoch number
+              createdAt: projectTimestamps[projectId] || Date.now(),
             };
           });
 
@@ -143,14 +152,14 @@ const Explore = () => {
     } catch (error) {
       console.error('Error loading projects:', error);
       
-      // Sadece ilk yükleme hatalarında toast göster
-      // Auto-refresh hatalarını sessizce logla (UX için)
+      // Only show toast on initial load errors
+      // Silently log auto-refresh errors (for UX)
       if (projects.length === 0) {
         toast.error("Failed to load projects. Please refresh the page.", {
           duration: 5000,
         });
       }
-      // Eğer zaten data varsa, sessizce devam et (auto-refresh hatası)
+      // If data already exists, continue silently (auto-refresh error)
     } finally {
       setLoading(false);
     }
