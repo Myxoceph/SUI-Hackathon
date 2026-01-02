@@ -1,0 +1,244 @@
+{
+  "nav": {
+    "home": "HOME",
+    "passport": "PASSPORT",
+    "contribute": "CONTRIBUTE",
+    "explore": "EXPLORE",
+    "jobs": "JOBS",
+    "community": "COMMUNITY",
+    "leaderboard": "LEADERBOARD",
+    "messages": "MESSAGES",
+    "settings": "SETTINGS"
+  },
+  "home": {
+    "title": "Build, Share, Prove",
+    "subtitle": "Decentralized portfolio for developers. Store your projects on-chain, earn peer endorsements, and build your verifiable reputation.",
+    "getStarted": "Get Started",
+    "connectWallet": "Connect Wallet",
+    "stats": {
+      "totalProjects": "TOTAL PROJECTS",
+      "verifiedUsers": "VERIFIED USERS",
+      "endorsements": "ENDORSEMENTS",
+      "networkActivity": "NETWORK ACTIVITY"
+    },
+    "features": {
+      "verifiableProof": {
+        "title": "Verifiable Proof",
+        "description": "Every project is hashed and stored on Sui. Immutable proof of your work history that cannot be forged or deleted."
+      },
+      "peerEndorsements": {
+        "title": "Peer Endorsements",
+        "description": "Reputation is built by peers, not platforms. Get endorsed by other verified builders in the ecosystem."
+      },
+      "openNetwork": {
+        "title": "Open Network",
+        "description": "A public graph of projects. Portable reputation that follows you across projects and communities."
+      }
+    }
+  },
+  "passport": {
+    "title": "Passport",
+    "subtitle": "Your onchain identity and contributions.",
+    "connectMessage": "Connect your Sui wallet to view your projects, endorsements, and contributions.",
+    "totalScore": "TOTAL SCORE",
+    "projects": "PROJECTS",
+    "endorsements": "ENDORSEMENTS",
+    "contributor": "CONTRIBUTOR",
+    "myProjects": "MY PROJECTS",
+    "endorsed": "ENDORSED",
+    "achievements": "ACHIEVEMENTS",
+    "noProjects": "No projects yet. Start building!",
+    "noProjectsDesc": "Create your first project to showcase your work and receive community endorsements.",
+    "createFirst": "Create First Project",
+    "noEndorsed": "No endorsed projects",
+    "noEndorsedDesc": "Explore community projects and endorse the ones you find valuable.",
+    "exploreProjects": "Explore Projects",
+    "endorsementsReceived": "You have received {{count}} endorsement from the community",
+    "endorsementsReceived_plural": "You have received {{count}} endorsements from the community",
+    "noEndorsements": "No Endorsements Yet",
+    "noEndorsementsDesc": "Create quality projects and get endorsed by the community to build your reputation!"
+  },
+  "contribute": {
+    "title": "Create Project",
+    "projectType": "Project Type",
+    "selectType": "Select type...",
+    "projectTitle": "Project Title",
+    "description": "Description",
+    "proofLink": "Proof Link",
+    "proofPlaceholder": "GitHub repo, demo link, etc.",
+    "creating": "Creating...",
+    "createProject": "Create Project",
+    "success": "Project created successfully!",
+    "error": "Failed to create project"
+  },
+  "explore": {
+    "title": "Explore Projects",
+    "subtitle": "Discover what the community is building.",
+    "searchPlaceholder": "Search projects...",
+    "noProjects": "No projects found",
+    "noProjectsDesc": "Be the first to contribute! Create a project to inspire the community.",
+    "endorseSuccess": "Project endorsed! 🎉",
+    "alreadyEndorsed": "You already endorsed this project on-chain!"
+  },
+  "jobs": {
+    "title": "Job Board",
+    "subtitle": "Find opportunities or hire contributors.",
+    "postJob": "Post a Job",
+    "searchPlaceholder": "Search jobs...",
+    "noJobs": "No jobs available",
+    "noJobsDesc": "Be the first to post a job and find talented contributors!",
+    "applicationSuccess": "Application submitted! 🎉",
+    "assignSuccess": "Job assigned! 🎉"
+  },
+  "community": {
+    "title": "Community",
+    "members": "Members",
+    "noMembers": "No community members yet"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "subtitle": "Top builders ranked by contribution score",
+    "yourRank": "Your Rank",
+    "totalScore": "Total Score",
+    "topBuilders": "TOP BUILDERS",
+    "mostEndorsed": "MOST ENDORSED",
+    "topSupporters": "TOP SUPPORTERS"
+  },
+  "messages": {
+    "title": "Messages",
+    "subtitle": "Chat with other contributors on-chain.",
+    "newChat": "New Chat",
+    "recipientPlaceholder": "Recipient SUI address (0x...)",
+    "start": "Start",
+    "recipientHelp": "Enter the SUI wallet address of the person you want to message.",
+    "searchPlaceholder": "Search conversations...",
+    "noConversations": "No conversations yet",
+    "noConversationsDesc": "Click the \"New Chat\" button to send a message to a SUI address."
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "language": "Language"
+  },
+  "common": {
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "submit": "Submit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "confirm": "Confirm",
+    "viewMore": "View More",
+    "endorse": "Endorse",
+    "viewProject": "View Project"
+  },
+  "wallet": {
+    "connect": "Connect Wallet",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "wrongNetwork": "Wrong Network"
+  },
+  "errors": {
+    "somethingWrong": "Something went wrong",
+    "tryAgain": "Please try again",
+    "walletRequired": "Please connect your wallet to endorse!",
+    "networkError": "Network error occurred",
+    "endorseFailed": "Endorsement failed: ",
+    "applyFailed": "Failed to apply: ",
+    "assignFailed": "Failed to assign: ",
+    "unknown": "Unknown error"
+  },
+  "components": {
+    "common": {
+      "you": "YOU"
+    },
+    "jobCard": {
+      "applicants": "applicants",
+      "completionStatus": "Completion Status",
+      "owner": "Owner",
+      "worker": "Worker",
+      "assignedToYou": "ASSIGNED TO YOU",
+      "apply": "Apply",
+      "applied": "Applied",
+      "confirmDone": "Confirm Done",
+      "viewApplicants": "View Applicants ({{count}})",
+      "applyForJob": "Apply for Job",
+      "coverLetter": "Cover Letter / Message",
+      "coverLetterPlaceholder": "Introduce yourself and explain why you're a good fit for this job...",
+      "budgetLabel": "Budget",
+      "paymentRelease": "Payment will be released when both parties confirm completion.",
+      "submitting": "Submitting...",
+      "submitApplication": "Submit Application",
+      "jobApplicants": "Job Applicants",
+      "applicantsForJob": "{{count}} applicant for \"{{title}}\"",
+      "applicantsForJob_plural": "{{count}} applicants for \"{{title}}\"",
+      "assign": "Assign",
+      "noApplicants": "No applicants yet"
+    },
+    "projectCard": {
+      "viewProof": "View Proof",
+      "cannotEndorseOwn": "You cannot endorse your own contribution",
+      "alreadyEndorsed": "You already endorsed this contribution",
+      "endorseThis": "Endorse this contribution",
+      "endorsed": "ENDORSED",
+      "endorsementTransparency": "Endorsement Transparency",
+      "endorsementsOnChain": "All {{count}} endorsement is recorded on-chain. View transaction history on Sui Explorer.",
+      "endorsementsOnChain_plural": "All {{count}} endorsements are recorded on-chain. View transaction history on Sui Explorer.",
+      "collusionWarning": "Mutual endorsements between same users may indicate collusion"
+    },
+    "createJobModal": {
+      "title": "Post a New Job",
+      "description": "Create a job listing and find talent. Payment in SUI.",
+      "jobTitle": "Job Title",
+      "jobTitlePlaceholder": "e.g. Build DeFi Dashboard UI",
+      "jobDescription": "Job Description",
+      "jobDescriptionPlaceholder": "Describe the job requirements, deliverables, and any specific skills needed...",
+      "requiredSkills": "Required Skills (Tags)",
+      "skillPlaceholder": "Type a skill and press Enter (e.g. JavaScript, React)",
+      "tagsAdded": "{{count}}/10 tags added. Popular: {{tags}}",
+      "budget": "Budget (SUI)",
+      "budgetPlaceholder": "100",
+      "mockupWarning": "⚠️ Mockup Mode: Payment will NOT be deducted. Only gas fees apply.",
+      "howItWorks": "How it works:",
+      "step1": "Post your job with required skills and budget",
+      "step2": "Developers apply with their proposals",
+      "step3": "You select and assign a developer",
+      "step4": "Both parties confirm when job is complete",
+      "step5": "Payment is released to the developer",
+      "postJob": "Post Job",
+      "posting": "Posting..."
+    },
+    "usernameSetup": {
+      "welcome": "Welcome to PeerFlow",
+      "chooseUsername": "Choose a username to get started",
+      "username": "Username",
+      "usernamePlaceholder": "Enter your username",
+      "usernameRules": "3-20 characters, letters, numbers, _ and - only",
+      "usernameTaken": "This username is already taken",
+      "sponsoredByEnoki": "Sponsored by Enoki",
+      "sponsoredDesc": "Your transaction will be automatically sponsored. No gas fees required!",
+      "getTestnet": "Get Testnet SUI",
+      "registerUsername": "Register Username",
+      "registering": "Registering...",
+      "alreadyHave": "Already have a username?",
+      "skip": "Skip for now"
+    },
+    "chat": {
+      "walletRequired": "Wallet Connection Required",
+      "connectToMessage": "Please connect your wallet to send messages.",
+      "online": "• Online",
+      "typePlaceholder": "Type a message...",
+      "noMessages": "No messages yet",
+      "startConversation": "Send a message to start the conversation."
+    },
+    "footer": {
+      "built": "Built for Sui Hackathon. Inspired by 42.",
+      "operational": "System Operational"
+    }
+  }
+}

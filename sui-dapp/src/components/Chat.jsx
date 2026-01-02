@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Send, Loader2, AlertCircle, CheckCircle2, ExternalLink, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { useMessages } from "@/hooks/useMessages";
  * Send and view messages on SUI blockchain
  */
 const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => {
+  const { t } = useTranslation();
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef(null);
   
@@ -67,9 +69,9 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
     return (
       <div className={cn("flex flex-col items-center justify-center p-8 text-center", className)}>
         <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Wallet Connection Required</h3>
+        <h3 className="text-lg font-semibold mb-2">{t('components.chat.walletRequired')}</h3>
         <p className="text-muted-foreground">
-          Please connect your wallet to send messages.
+          {t('components.chat.connectToMessage')}
         </p>
       </div>
     );
@@ -92,7 +94,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded-full">
-            • Online
+            {t('components.chat.online')}
           </span>
         </div>
       </div>
@@ -109,9 +111,9 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
               <User className="h-8 w-8" />
             </div>
             <p className="font-medium mb-1">{formatAddress(recipientAddress)}</p>
-            <p className="text-muted-foreground text-sm mb-4">Start conversation with</p>
+            <p className="text-muted-foreground text-sm mb-4">{t('components.chat.noMessages')}</p>
             <p className="text-xs text-muted-foreground">
-              Your sent messages will appear here
+              {t('components.chat.startConversation')}
             </p>
           </div>
         ) : (
@@ -208,7 +210,7 @@ const Chat = ({ recipientAddress, recipientName = null, className, onBack }) => 
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="Type your message..."
+            placeholder={t('components.chat.typePlaceholder')}
             disabled={sending}
             className="flex-1 rounded-full bg-muted/50 border-0 focus-visible:ring-1"
             autoComplete="off"

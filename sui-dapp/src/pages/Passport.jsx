@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, Loader2, RefreshCw, ThumbsUp, Trophy, Award } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import ProjectCard from "@/components/ProjectCard";
 import { useWallet } from "@/contexts/WalletContext";
 import { formatAddress, formatBalance } from "@/lib/formatters";
@@ -11,6 +12,7 @@ import { useSuiClient } from "@mysten/dapp-kit";
 import { CONTRACTS } from "@/config/contracts";
 
 const Passport = () => {
+  const { t } = useTranslation();
   const { isConnected, address, balance, projects, loading, userProfile, refreshData } = useWallet();
   const client = useSuiClient();
   const [endorsementsReceived, setEndorsementsReceived] = useState([]);
@@ -169,9 +171,9 @@ const Passport = () => {
           <span className="text-3xl">🔒</span>
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold font-sans">Connect Your Wallet</h2>
+          <h2 className="text-2xl font-bold font-sans">{t('wallet.connect')}</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Connect your Sui wallet.
+            {t('passport.connectMessage')}
           </p>
         </div>
       </div>
@@ -218,24 +220,24 @@ const Passport = () => {
               <Badge variant="secondary" className="rounded-none">
                 {formatBalance(balance)} SUI
               </Badge>
-              <Badge variant="secondary" className="rounded-none">CONTRIBUTOR</Badge>
+              <Badge variant="secondary" className="rounded-none">{t('passport.contributor')}</Badge>
             </div>
           </div>
         </div>
         
         <div className="flex gap-4">
           <div className="text-right">
-            <div className="text-sm text-muted-foreground font-mono">TOTAL SCORE</div>
+            <div className="text-sm text-muted-foreground font-mono">{t('passport.totalScore')}</div>
             <div className="text-2xl font-bold">{totalScore.toLocaleString()}</div>
           </div>
           <div className="w-[1px] bg-border h-12" />
           <div className="text-right">
-            <div className="text-sm text-muted-foreground font-mono">PROJECTS</div>
+            <div className="text-sm text-muted-foreground font-mono">{t('passport.projects')}</div>
             <div className="text-2xl font-bold">{projects.length}</div>
           </div>
           <div className="w-[1px] bg-border h-12" />
           <div className="text-right">
-            <div className="text-sm text-muted-foreground font-mono">ENDORSEMENTS</div>
+            <div className="text-sm text-muted-foreground font-mono">{t('passport.endorsements')}</div>
             <div className="text-2xl font-bold">{endorsementsReceived.length}</div>
           </div>
         </div>
@@ -248,19 +250,19 @@ const Passport = () => {
             value="projects" 
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
-            PROJECTS
+            {t('passport.projects')}
           </TabsTrigger>
           <TabsTrigger 
             value="endorsements" 
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
-            ENDORSEMENTS
+            {t('passport.endorsements')}
           </TabsTrigger>
           <TabsTrigger 
             value="achievements" 
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
-            ACHIEVEMENTS
+            {t('passport.achievements')}
           </TabsTrigger>
         </TabsList>
 
@@ -275,7 +277,7 @@ const Passport = () => {
             ))
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              No projects yet. Start building!
+              {t('passport.noProjects')}
             </div>
           )}
         </TabsContent>
@@ -289,7 +291,7 @@ const Passport = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  You have received {endorsementsReceived.length} endorsement{endorsementsReceived.length !== 1 ? 's' : ''} from the community
+                  {t('passport.endorsementsReceived', { count: endorsementsReceived.length })}
                 </p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
@@ -319,7 +321,7 @@ const Passport = () => {
                               className="h-auto p-0 text-xs"
                               onClick={() => window.open(`https://suiscan.xyz/testnet/object/${endorsement.projectId}`, '_blank')}
                             >
-                              View Project <ExternalLink className="h-3 w-3 ml-1" />
+                              {t('common.viewProject')} <ExternalLink className="h-3 w-3 ml-1" />
                             </Button>
                           </div>
                         </div>
@@ -335,9 +337,9 @@ const Passport = () => {
                 <ThumbsUp className="h-8 w-8 text-muted-foreground" />
               </div>
               <div className="space-y-2">
-                <p className="text-lg font-semibold">No Endorsements Yet</p>
+                <p className="text-lg font-semibold">{t('passport.noEndorsements')}</p>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Create quality projects and get endorsed by the community to build your reputation!
+                  {t('passport.noEndorsementsDesc')}
                 </p>
               </div>
             </div>

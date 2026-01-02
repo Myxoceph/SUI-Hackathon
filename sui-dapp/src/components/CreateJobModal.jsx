@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 
 const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -92,9 +94,9 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="rounded-none border-border max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-sans text-xl">Post a New Job</DialogTitle>
+          <DialogTitle className="font-sans text-xl">{t('components.createJobModal.title')}</DialogTitle>
           <DialogDescription className="font-mono text-xs">
-            Create a job listing and find talent. Payment in SUI.
+            {t('components.createJobModal.description')}
           </DialogDescription>
         </DialogHeader>
         
@@ -102,11 +104,11 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title" className="font-mono uppercase text-xs">
-              Job Title *
+              {t('components.createJobModal.jobTitle')} *
             </Label>
             <Input
               id="title"
-              placeholder="e.g. Build DeFi Dashboard UI"
+              placeholder={t('components.createJobModal.jobTitlePlaceholder')}
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               className="rounded-none border-border"
@@ -117,11 +119,11 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
           {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description" className="font-mono uppercase text-xs">
-              Job Description *
+              {t('components.createJobModal.jobDescription')} *
             </Label>
             <Textarea
               id="description"
-              placeholder="Describe the job requirements, deliverables, and any specific skills needed..."
+              placeholder={t('components.createJobModal.jobDescriptionPlaceholder')}
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               className="rounded-none border-border min-h-[150px]"
@@ -132,7 +134,7 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
           {/* Tags */}
           <div className="space-y-2">
             <Label className="font-mono uppercase text-xs">
-              Required Skills (Tags)
+              {t('components.createJobModal.requiredSkills')}
             </Label>
             
             {/* Selected Tags */}
@@ -160,7 +162,7 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
             {/* Tag Input */}
             <div className="relative">
               <Input
-                placeholder="Type a skill and press Enter (e.g. JavaScript, React)"
+                placeholder={t('components.createJobModal.skillPlaceholder')}
                 value={tagInput}
                 onChange={(e) => {
                   setTagInput(e.target.value);
@@ -191,14 +193,14 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
             </div>
             
             <p className="text-xs text-muted-foreground font-mono">
-              {formData.tags.length}/10 tags added. Popular: {SKILL_TAGS.slice(0, 5).map(t => `#${t}`).join(', ')}
+              {t('components.createJobModal.tagsAdded', { count: formData.tags.length, tags: SKILL_TAGS.slice(0, 5).map(t => `#${t}`).join(', ') })}
             </p>
           </div>
 
           {/* Budget */}
           <div className="space-y-2">
             <Label htmlFor="budget" className="font-mono uppercase text-xs">
-              Budget (SUI) *
+              {t('components.createJobModal.budget')} *
             </Label>
             <div className="relative">
               <Input
@@ -206,7 +208,7 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
                 type="number"
                 step="0.1"
                 min="1"
-                placeholder="100"
+                placeholder={t('components.createJobModal.budgetPlaceholder')}
                 value={formData.budgetSui}
                 onChange={(e) => setFormData(prev => ({ ...prev, budgetSui: e.target.value }))}
                 className="rounded-none border-border pr-16"
@@ -217,19 +219,19 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
               </span>
             </div>
             <p className="text-xs text-muted-foreground font-mono">
-              ⚠️ Mockup Mode: Payment will NOT be deducted. Only gas fees apply.
+              {t('components.createJobModal.mockupWarning')}
             </p>
           </div>
 
           {/* Info Box */}
           <div className="bg-muted/50 p-4 border border-border space-y-2 text-xs">
-            <p className="font-mono font-bold">How it works:</p>
+            <p className="font-mono font-bold">{t('components.createJobModal.howItWorks')}</p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground font-mono">
-              <li>Post your job with required skills and budget</li>
-              <li>Developers apply with their proposals</li>
-              <li>You select and assign a developer</li>
-              <li>Both parties confirm when job is complete</li>
-              <li>Payment is released to the developer</li>
+              <li>{t('components.createJobModal.step1')}</li>
+              <li>{t('components.createJobModal.step2')}</li>
+              <li>{t('components.createJobModal.step3')}</li>
+              <li>{t('components.createJobModal.step4')}</li>
+              <li>{t('components.createJobModal.step5')}</li>
             </ul>
           </div>
 
@@ -240,7 +242,7 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
               onClick={handleClose}
               className="rounded-none"
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button 
               type="submit"
@@ -250,12 +252,12 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Posting...
+                  {t('components.createJobModal.posting')}
                 </>
               ) : (
                 <>
                   <Plus className="mr-2 h-4 w-4" />
-                  Post Job
+                  {t('components.createJobModal.postJob')}
                 </>
               )}
             </Button>

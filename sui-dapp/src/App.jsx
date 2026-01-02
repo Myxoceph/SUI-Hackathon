@@ -21,6 +21,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { MessagingProvider } from "@/contexts/MessagingContext";
 import Messages from "@/pages/Messages";
 import "@mysten/dapp-kit/dist/index.css";
+import "@/i18n/config";
 
 const queryClient = new QueryClient({
   defaultOptions: {

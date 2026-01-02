@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Trophy, Briefcase, MessageSquare, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { getAllUsers } from "@/lib/userProfile";
 import { getExplorerUrl } from "@/config/contracts";
 
 function Community() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -53,7 +55,7 @@ function Community() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Community
+          {t('community.title')}
         </h1>
         <p className="text-muted-foreground">
           Discover developers, freelancers, and builders in our ecosystem
@@ -65,7 +67,7 @@ function Community() {
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by username or address..."
+            placeholder={t('explore.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"

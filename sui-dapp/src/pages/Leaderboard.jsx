@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSuiClient } from "@mysten/dapp-kit";
+import { useTranslation } from 'react-i18next';
 import { CONTRACTS } from "@/config/contracts";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ import { formatAddress } from "@/lib/formatters";
 import { useWallet } from "@/contexts/WalletContext";
 
 const Leaderboard = () => {
+  const { t } = useTranslation();
   const client = useSuiClient();
   const { address } = useWallet();
   const [loading, setLoading] = useState(true);
@@ -159,9 +161,9 @@ const Leaderboard = () => {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold font-sans">Leaderboard</h1>
+            <h1 className="text-4xl font-bold font-sans">{t('nav.leaderboard')}</h1>
             <p className="text-muted-foreground mt-2">
-              Top builders ranked by contribution score
+              {t('leaderboard.subtitle')}
             </p>
           </div>
           <Button
@@ -184,12 +186,12 @@ const Leaderboard = () => {
                     {getRankIcon(currentUserRank)}
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Your Rank</p>
+                    <p className="text-sm text-muted-foreground">{t('leaderboard.yourRank')}</p>
                     <p className="text-2xl font-bold">#{currentUserRank}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Total Score</p>
+                  <p className="text-sm text-muted-foreground">{t('leaderboard.totalScore')}</p>
                   <p className="text-2xl font-bold">{leaderboard[currentUserRank - 1]?.totalScore.toLocaleString()}</p>
                 </div>
               </div>
@@ -205,19 +207,19 @@ const Leaderboard = () => {
             value="top-builders"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
-            TOP BUILDERS
+            {t('leaderboard.topBuilders')}
           </TabsTrigger>
           <TabsTrigger 
             value="top-endorsed"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
-            MOST ENDORSED
+            {t('leaderboard.mostEndorsed')}
           </TabsTrigger>
           <TabsTrigger 
             value="top-supporters"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
-            TOP SUPPORTERS
+            {t('leaderboard.topSupporters')}
           </TabsTrigger>
         </TabsList>
 

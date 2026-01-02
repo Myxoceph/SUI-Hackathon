@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { registerUsername, isUsernameAvailableOnChain } from "@/lib/suiTransacti
 import { CONTRACTS } from "@/config/contracts";
 
 const UsernameSetup = ({ address, onComplete, onCancel }) => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTaken, setIsTaken] = useState(false);
@@ -143,19 +145,19 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
         <CardContent className="pt-6">
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h2 className="text-2xl font-bold font-sans">Welcome to PeerFlow</h2>
+              <h2 className="text-2xl font-bold font-sans">{t('components.usernameSetup.welcome')}</h2>
               <p className="text-sm text-muted-foreground font-mono">
-                Choose a username to get started
+                {t('components.usernameSetup.chooseUsername')}
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username" className="font-mono">Username</Label>
+                <Label htmlFor="username" className="font-mono">{t('components.usernameSetup.username')}</Label>
                 <div className="relative">
                   <Input
                     id="username"
-                    placeholder="Enter your username"
+                    placeholder={t('components.usernameSetup.usernamePlaceholder')}
                     value={username}
                     onChange={(e) => {
                       const value = e.target.value.toLowerCase();
@@ -179,11 +181,11 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground font-mono">
-                  3-20 characters, letters, numbers, _ and - only
+                  {t('components.usernameSetup.usernameRules')}
                 </p>
                 {isTaken && (
                   <p className="text-xs text-red-500 font-mono">
-                    This username is already taken
+                    {t('components.usernameSetup.usernameTaken')}
                   </p>
                 )}
               </div>
@@ -192,8 +194,8 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
                 <div className="flex items-start gap-2 text-xs text-muted-foreground font-mono">
                   <div className="mt-0.5">💡</div>
                   <div>
-                    <p className="font-semibold mb-1">Sponsored by Enoki</p>
-                    <p>Your transaction will be automatically sponsored. No gas fees required!</p>
+                    <p className="font-semibold mb-1">{t('components.usernameSetup.sponsoredByEnoki')}</p>
+                    <p>{t('components.usernameSetup.sponsoredDesc')}</p>
                     {CONTRACTS.PACKAGE_ID !== "TO_BE_DEPLOYED" && (
                       <Button
                         type="button"
@@ -202,7 +204,7 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
                         className="h-auto p-0 mt-1 text-xs text-blue-400 hover:text-blue-300"
                         onClick={() => window.open(`https://faucet.sui.io/?address=${address}`, '_blank')}
                       >
-                        Or get free testnet SUI <ExternalLink className="h-3 w-3 ml-1" />
+                        {t('components.usernameSetup.getTestnet')} <ExternalLink className="h-3 w-3 ml-1" />
                       </Button>
                     )}
                   </div>
@@ -218,7 +220,7 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
                   className="flex-1"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -228,10 +230,10 @@ const UsernameSetup = ({ address, onComplete, onCancel }) => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
+                      {t('components.usernameSetup.registering')}
                     </>
                   ) : (
-                    "Create Profile"
+                    t('components.usernameSetup.registerUsername')
                   )}
                 </Button>
               </div>

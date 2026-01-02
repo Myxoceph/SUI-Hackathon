@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 import { useWallet } from "@/contexts/WalletContext";
 import { useMessages } from "@/hooks/useMessages";
 import Chat from "@/components/Chat";
@@ -12,6 +13,7 @@ import Chat from "@/components/Chat";
  * Messages Page - On-chain messaging
  */
 const Messages = () => {
+  const { t } = useTranslation();
   const { isConnected, address } = useWallet();
   const {
     conversations,
@@ -146,19 +148,19 @@ const Messages = () => {
               <Input
                 value={newRecipientAddress}
                 onChange={(e) => setNewRecipientAddress(e.target.value)}
-                placeholder="Recipient SUI address (0x...)"
+                placeholder={t('messages.recipientPlaceholder')}
                 className="font-mono text-sm"
                 onKeyPress={(e) => e.key === "Enter" && handleStartNewChat()}
               />
               <Button onClick={handleStartNewChat}>
-                Start
+                {t('messages.start')}
               </Button>
               <Button variant="outline" onClick={() => setShowNewChat(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Enter the SUI wallet address of the person you want to message.
+              {t('messages.recipientHelp')}
             </p>
           </CardContent>
         </Card>
@@ -170,7 +172,7 @@ const Messages = () => {
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search conversations..."
+          placeholder={t('messages.searchPlaceholder')}
           className="pl-10"
         />
       </div>
@@ -187,9 +189,9 @@ const Messages = () => {
               <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
                 <MessageSquare className="h-8 w-8 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground font-medium mb-2">No conversations yet</p>
+              <p className="text-muted-foreground font-medium mb-2">{t('messages.noConversations')}</p>
               <p className="text-xs text-muted-foreground text-center max-w-sm">
-                Click the "New Chat" button to send a message to a SUI address.
+                {t('messages.noConversationsDesc')}
               </p>
             </CardContent>
           </Card>

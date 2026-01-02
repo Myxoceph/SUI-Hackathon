@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { ConnectButton, useSuiClient } from "@mysten/dapp-kit";
+import { useTranslation } from 'react-i18next';
 import StatCard from "@/components/StatCard";
 import FeatureCard from "@/components/FeatureCard";
 import { STATS, FEATURES } from "@/constants/home";
@@ -10,6 +11,7 @@ import { useState, useEffect } from "react";
 import { CONTRACTS } from "@/config/contracts";
 
 const Home = () => {
+  const { t } = useTranslation();
   const { isConnected, userProfile } = useWallet();
   const client = useSuiClient();
   const [stats, setStats] = useState(STATS);
@@ -138,13 +140,11 @@ const Home = () => {
       </div>
       
       <h1 className="text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:leading-[1.1] font-sans max-w-3xl">
-        On-Chain Project <br className="hidden sm:inline" />
-        Portfolio for Builders.
+        {t('home.title')}
       </h1>
       
       <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl font-mono">
-        Verify your skills. Endorse peers. Build your reputation on Sui.
-        A decentralized CV that speaks code, not buzzwords.
+        {t('home.subtitle')}
       </p>
       
       <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -152,19 +152,19 @@ const Home = () => {
           <>
             <Link to="/passport">
               <Button size="lg" className="w-full sm:w-auto font-mono text-base h-12 px-8">
-                VIEW PASSPORT <ArrowRight className="ml-2 h-4 w-4" />
+                {t('nav.passport').toUpperCase()} <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
             <Link to="/contribute">
               <Button variant="outline" size="lg" className="w-full sm:w-auto font-mono text-base h-12 px-8">
-                SUBMIT WORK
+                {t('nav.contribute').toUpperCase()}
               </Button>
             </Link>
           </>
         ) : (
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <ConnectButton className="font-mono text-base h-12 px-8" />
-            <span className="text-sm text-muted-foreground">Connect your wallet or sign in with Google to get started</span>
+            <span className="text-sm text-muted-foreground">{t('wallet.connect')}</span>
           </div>
         )}
       </div>

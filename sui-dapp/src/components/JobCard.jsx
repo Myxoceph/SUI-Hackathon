@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -35,6 +36,7 @@ const JobCard = ({
   onLoadApplicants,
   applicants,
 }) => {
+  const { t } = useTranslation();
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showApplicantsModal, setShowApplicantsModal] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
@@ -138,20 +140,20 @@ const JobCard = ({
           </span>
           <span className="flex items-center gap-1">
             <Users className="h-3 w-3" />
-            {applicantCount} applicants
+            {applicantCount} {t('components.jobCard.applicants')}
           </span>
         </div>
 
         {/* Confirmation Status (for assigned jobs) */}
         {status === JOB_STATUS.ASSIGNED && (
           <div className="text-xs space-y-1 bg-muted/50 p-2 border border-border">
-            <p className="font-mono text-muted-foreground">Completion Status:</p>
+            <p className="font-mono text-muted-foreground">{t('components.jobCard.completionStatus')}:</p>
             <div className="flex gap-4">
               <span className={ownerConfirmed ? 'text-green-500' : 'text-muted-foreground'}>
-                {ownerConfirmed ? '✓' : '○'} Owner
+                {ownerConfirmed ? '✓' : '○'} {t('components.jobCard.owner')}
               </span>
               <span className={workerConfirmed ? 'text-green-500' : 'text-muted-foreground'}>
-                {workerConfirmed ? '✓' : '○'} Worker
+                {workerConfirmed ? '✓' : '○'} {t('components.jobCard.worker')}
               </span>
             </div>
           </div>
@@ -165,10 +167,10 @@ const JobCard = ({
             </div>
             <span className="text-xs font-mono">{shortAddress}</span>
             {isOwner && (
-              <Badge variant="secondary" className="text-xs">YOU</Badge>
+              <Badge variant="secondary" className="text-xs">{t('components.common.you')}</Badge>
             )}
             {isAssignedWorker && (
-              <Badge variant="secondary" className="text-xs bg-blue-500/20 text-blue-500">ASSIGNED TO YOU</Badge>
+              <Badge variant="secondary" className="text-xs bg-blue-500/20 text-blue-500">{t('components.jobCard.assignedToYou')}</Badge>
             )}
           </div>
           
@@ -186,14 +188,14 @@ const JobCard = ({
                 ) : (
                   <Send className="h-3 w-3" />
                 )}
-                Apply
+                {t('components.jobCard.apply')}
               </Button>
             )}
 
             {/* Already Applied Badge */}
             {hasApplied && status === JOB_STATUS.OPEN && (
               <Badge variant="outline" className="rounded-none text-xs bg-primary/10">
-                Applied ✓
+                {t('components.jobCard.applied')} ✓
               </Badge>
             )}
 
@@ -211,7 +213,7 @@ const JobCard = ({
                 ) : (
                   <CheckCircle2 className="h-3 w-3" />
                 )}
-                Confirm Done
+                {t('components.jobCard.confirmDone')}
               </Button>
             )}
 
@@ -230,7 +232,7 @@ const JobCard = ({
                   }
                 }}
               >
-                View Applicants ({applicantCount})
+                {t('components.jobCard.viewApplicants', { count: applicantCount })}
               </Button>
             )}
           </div>
@@ -241,7 +243,7 @@ const JobCard = ({
       <Dialog open={showApplyModal} onOpenChange={setShowApplyModal}>
         <DialogContent className="rounded-none border-border">
           <DialogHeader>
-            <DialogTitle className="font-sans">Apply for Job</DialogTitle>
+            <DialogTitle className="font-sans">{t('components.jobCard.applyForJob')}</DialogTitle>
             <DialogDescription className="font-mono text-xs">
               {title}
             </DialogDescription>
@@ -250,11 +252,11 @@ const JobCard = ({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="cover-letter" className="font-mono uppercase text-xs">
-                Cover Letter / Message
+                {t('components.jobCard.coverLetter')}
               </Label>
               <Textarea
                 id="cover-letter"
-                placeholder="Introduce yourself and explain why you're a good fit for this job..."
+                placeholder={t('components.jobCard.coverLetterPlaceholder')}
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
                 className="rounded-none border-border min-h-[120px]"
@@ -262,9 +264,9 @@ const JobCard = ({
             </div>
             
             <div className="bg-muted/50 p-3 border border-border text-xs space-y-1">
-              <p className="font-mono text-muted-foreground">Budget: <span className="text-primary font-bold">{budgetFormatted} SUI</span></p>
+              <p className="font-mono text-muted-foreground">{t('components.jobCard.budgetLabel')}: <span className="text-primary font-bold">{budgetFormatted} SUI</span></p>
               <p className="font-mono text-muted-foreground">
-                Payment will be released when both parties confirm completion.
+                {t('components.jobCard.paymentRelease')}
               </p>
             </div>
           </div>
@@ -275,7 +277,7 @@ const JobCard = ({
               onClick={() => setShowApplyModal(false)}
               className="rounded-none"
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button 
               onClick={handleApplySubmit}
@@ -285,10 +287,10 @@ const JobCard = ({
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
+                  {t('components.jobCard.submitting')}
                 </>
               ) : (
-                'Submit Application'
+                t('components.jobCard.submitApplication')
               )}
             </Button>
           </DialogFooter>
@@ -299,9 +301,9 @@ const JobCard = ({
       <Dialog open={showApplicantsModal} onOpenChange={setShowApplicantsModal}>
         <DialogContent className="rounded-none border-border max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-sans">Job Applicants</DialogTitle>
+            <DialogTitle className="font-sans">{t('components.jobCard.jobApplicants')}</DialogTitle>
             <DialogDescription className="font-mono text-xs">
-              {applicantCount} applicant{applicantCount !== 1 ? 's' : ''} for "{title}"
+              {t('components.jobCard.applicantsForJob', { count: applicantCount, title })}
             </DialogDescription>
           </DialogHeader>
           
@@ -334,7 +336,7 @@ const JobCard = ({
                     {isProcessing ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
-                      'Assign'
+                      t('components.jobCard.assign')
                     )}
                   </Button>
                 </div>
@@ -342,7 +344,7 @@ const JobCard = ({
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No applicants yet</p>
+                <p className="text-sm">{t('components.jobCard.noApplicants')}</p>
               </div>
             )}
           </div>
@@ -353,7 +355,7 @@ const JobCard = ({
               onClick={() => setShowApplicantsModal(false)}
               className="rounded-none w-full"
             >
-              Close
+              {t('common.close')}
             </Button>
           </DialogFooter>
         </DialogContent>

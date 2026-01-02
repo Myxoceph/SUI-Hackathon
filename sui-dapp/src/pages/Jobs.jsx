@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Filter, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 import { useWallet } from "@/contexts/WalletContext";
 import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { CONTRACTS, JOB_STATUS, JOBS_CONFIG } from "@/config/contracts";
@@ -22,6 +23,7 @@ const isJobsDemoMode = () => {
 };
 
 const Jobs = () => {
+  const { t } = useTranslation();
   const { isConnected, address } = useWallet();
   const client = useSuiClient();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
@@ -309,14 +311,14 @@ const Jobs = () => {
     setProcessingId(jobId);
     try {
       const result = await applyForJob(signAndExecute, jobId, coverLetter);
-      toast.success("Application submitted! 🎉", {
+      toast.success(t('jobs.applicationSuccess'), {
         description: `Transaction: ${result.digest?.slice(0, 8)}...`,
       });
       setUserApplications(prev => new Set([...prev, jobId]));
       loadAllJobs();
     } catch (error) {
       console.error("Apply error:", error);
-      toast.error("Failed to apply: " + (error.message || "Unknown error"));
+      toast.error(t('errors.applyFailed') + (error.message || t('errors.unknown')));
     } finally {
       setProcessingId(null);
     }
@@ -334,13 +336,13 @@ const Jobs = () => {
     setProcessingId(jobId);
     try {
       const result = await assignJob(signAndExecute, jobId, workerAddress);
-      toast.success("Job assigned! 🎉", {
+      toast.success(t('jobs.assignSuccess'), {
         description: `Transaction: ${result.digest?.slice(0, 8)}...`,
       });
       loadAllJobs();
     } catch (error) {
       console.error("Assign error:", error);
-      toast.error("Failed to assign: " + (error.message || "Unknown error"));
+      toast.error(t('errors.assignFailed') + (error.message || t('errors.unknown')));
     } finally {
       setProcessingId(null);
     }

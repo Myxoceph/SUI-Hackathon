@@ -1,0 +1,244 @@
+{
+  "nav": {
+    "home": "ANA SAYFA",
+    "passport": "PASAPORT",
+    "contribute": "KATKIDA BULUN",
+    "explore": "KEŞFEDİN",
+    "jobs": "İŞLER",
+    "community": "TOPLULUK",
+    "leaderboard": "LİDER TABLOSU",
+    "messages": "MESAJLAR",
+    "settings": "AYARLAR"
+  },
+  "home": {
+    "title": "Geliştir, Paylaş, Kanıtla",
+    "subtitle": "Geliştiriciler için merkezi olmayan portföy. Projelerinizi zincir üzerinde saklayın, akran onayları kazanın ve doğrulanabilir itibarınızı oluşturun.",
+    "getStarted": "Başlayın",
+    "connectWallet": "Cüzdan Bağla",
+    "stats": {
+      "totalProjects": "TOPLAM PROJE",
+      "verifiedUsers": "DOĞRULANMIŞ KULLANICILAR",
+      "endorsements": "ONAYLAR",
+      "networkActivity": "AĞ AKTİVİTESİ"
+    },
+    "features": {
+      "verifiableProof": {
+        "title": "Doğrulanabilir Kanıt",
+        "description": "Her proje hash'lenir ve Sui üzerinde saklanır. Sahte yapılamaz veya silinemez, değiştirilemez çalışma geçmişi kanıtı."
+      },
+      "peerEndorsements": {
+        "title": "Akran Onayları",
+        "description": "İtibar platformlar tarafından değil, akranlar tarafından oluşturulur. Ekosistemde diğer doğrulanmış yapımcılardan onay alın."
+      },
+      "openNetwork": {
+        "title": "Açık Ağ",
+        "description": "Projelerin halka açık grafiği. Projeler ve topluluklar arasında sizi takip eden taşınabilir itibar."
+      }
+    }
+  },
+  "passport": {
+    "title": "Pasaport",
+    "subtitle": "Zincir üzerindeki kimliğiniz ve katkılarınız.",
+    "connectMessage": "Projelerinizi, onaylarınızı ve katkılarınızı görüntülemek için Sui cüzdanınızı bağlayın.",
+    "totalScore": "TOPLAM SKOR",
+    "projects": "PROJELER",
+    "endorsements": "ONAYLAR",
+    "contributor": "KATKILICI",
+    "myProjects": "PROJELERİM",
+    "endorsed": "ONAYLADIKLARIM",
+    "achievements": "BAŞARILAR",
+    "noProjects": "Henüz proje yok. İnşa etmeye başlayın!",
+    "noProjectsDesc": "Çalışmalarınızı sergilemek ve topluluk onayları almak için ilk projenizi oluşturun.",
+    "createFirst": "İlk Proje Oluştur",
+    "noEndorsed": "Onaylanmış proje yok",
+    "noEndorsedDesc": "Topluluk projelerini keşfedin ve değerli bulduklarınızı onaylayın.",
+    "exploreProjects": "Projeleri Keşfet",
+    "endorsementsReceived": "Topluluktan {{count}} onay aldınız",
+    "endorsementsReceived_plural": "Topluluktan {{count}} onay aldınız",
+    "noEndorsements": "Henüz Onay Yok",
+    "noEndorsementsDesc": "Kaliteli projeler oluşturun ve itibarınızı oluşturmak için topluluk tarafından onaylanın!"
+  },
+  "contribute": {
+    "title": "Proje Oluştur",
+    "projectType": "Proje Türü",
+    "selectType": "Tür seçin...",
+    "projectTitle": "Proje Başlığı",
+    "description": "Açıklama",
+    "proofLink": "Kanıt Linki",
+    "proofPlaceholder": "GitHub repo, demo linki, vb.",
+    "creating": "Oluşturuluyor...",
+    "createProject": "Proje Oluştur",
+    "success": "Proje başarıyla oluşturuldu!",
+    "error": "Proje oluşturulamadı"
+  },
+  "explore": {
+    "title": "Projeleri Keşfet",
+    "subtitle": "Topluluğun ne inşa ettiğini keşfedin.",
+    "searchPlaceholder": "Proje ara...",
+    "noProjects": "Proje bulunamadı",
+    "noProjectsDesc": "İlk katkıda bulunan siz olun! Topluluğa ilham vermek için bir proje oluşturun.",
+    "endorseSuccess": "Proje onaylandı! 🎉",
+    "alreadyEndorsed": "Bu projeyi zaten zincir üzerinde onayladınız!"
+  },
+  "jobs": {
+    "title": "İş İlanları",
+    "subtitle": "Fırsat bulun veya katkıda bulunanları işe alın.",
+    "postJob": "İş İlanı Ver",
+    "searchPlaceholder": "İş ara...",
+    "noJobs": "Müsait iş yok",
+    "noJobsDesc": "İlk iş ilanını veren siz olun ve yetenekli katkıda bulunanları bulun!",
+    "applicationSuccess": "Başvuru gönderildi! 🎉",
+    "assignSuccess": "İş atandı! 🎉"
+  },
+  "community": {
+    "title": "Topluluk",
+    "members": "Üyeler",
+    "noMembers": "Henüz topluluk üyesi yok"
+  },
+  "leaderboard": {
+    "title": "Lider Tablosu",
+    "subtitle": "Katkı puanına göre sıralanmış en iyi yapımcılar",
+    "yourRank": "Sıralamanız",
+    "totalScore": "Toplam Puan",
+    "topBuilders": "EN İYİ YAPIMCILAR",
+    "mostEndorsed": "EN ÇOK ONAYLANANLAR",
+    "topSupporters": "EN İYİ DESTEKÇİLER"
+  },
+  "messages": {
+    "title": "Mesajlar",
+    "subtitle": "Diğer katkıda bulunanlarla zincir üzerinde sohbet edin.",
+    "newChat": "Yeni Sohbet",
+    "recipientPlaceholder": "Alıcı SUI adresi (0x...)",
+    "start": "Başlat",
+    "recipientHelp": "Mesaj göndermek istediğiniz kişinin SUI cüzdan adresini girin.",
+    "searchPlaceholder": "Sohbet ara...",
+    "noConversations": "Henüz sohbet yok",
+    "noConversationsDesc": "Bir SUI adresine mesaj göndermek için \"Yeni Sohbet\" düğmesine tıklayın."
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "profile": "Profil",
+    "notifications": "Bildirimler",
+    "privacy": "Gizlilik",
+    "language": "Dil"
+  },
+  "common": {
+    "loading": "Yükleniyor...",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "submit": "Gönder",
+    "close": "Kapat",
+    "back": "Geri",
+    "next": "İleri",
+    "confirm": "Onayla",
+    "viewMore": "Daha Fazla Gör",
+    "endorse": "Onayla",
+    "viewProject": "Projeyi Görüntüle"
+  },
+  "wallet": {
+    "connect": "Cüzdan Bağla",
+    "disconnect": "Bağlantıyı Kes",
+    "connected": "Bağlandı",
+    "wrongNetwork": "Yanlış Ağ"
+  },
+  "errors": {
+    "somethingWrong": "Bir şeyler yanlış gitti",
+    "tryAgain": "Lütfen tekrar deneyin",
+    "walletRequired": "Onaylamak için lütfen cüzdanınızı bağlayın!",
+    "networkError": "Ağ hatası oluştu",
+    "endorseFailed": "Onaylama başarısız: ",
+    "applyFailed": "Başvuru başarısız: ",
+    "assignFailed": "Atama başarısız: ",
+    "unknown": "Bilinmeyen hata"
+  },
+  "components": {
+    "common": {
+      "you": "SİZ"
+    },
+    "jobCard": {
+      "applicants": "başvuru",
+      "completionStatus": "Tamamlanma Durumu",
+      "owner": "İş Veren",
+      "worker": "Çalışan",
+      "assignedToYou": "SİZE ATANDI",
+      "apply": "Başvur",
+      "applied": "Başvuruldu",
+      "confirmDone": "Tamamlandı Onayla",
+      "viewApplicants": "Başvuranları Görüntüle ({{count}})",
+      "applyForJob": "İşe Başvur",
+      "coverLetter": "Kapak Mektubu / Mesaj",
+      "coverLetterPlaceholder": "Kendinizi tanıtın ve bu iş için neden uygun olduğunuzu açıklayın...",
+      "budgetLabel": "Bütçe",
+      "paymentRelease": "Her iki taraf tamamlandığını onayladığında ödeme yapılacak.",
+      "submitting": "Gönderiliyor...",
+      "submitApplication": "Başvuruyu Gönder",
+      "jobApplicants": "İş Başvuruları",
+      "applicantsForJob": "\"{{title}}\" için {{count}} başvuru",
+      "applicantsForJob_plural": "\"{{title}}\" için {{count}} başvuru",
+      "assign": "Ata",
+      "noApplicants": "Henüz başvuru yok"
+    },
+    "projectCard": {
+      "viewProof": "Kanıt Görüntüle",
+      "cannotEndorseOwn": "Kendi katkınızı onaylayamazsınız",
+      "alreadyEndorsed": "Bu katkıyı zaten onayladınız",
+      "endorseThis": "Bu katkıyı onaylayın",
+      "endorsed": "ONAYLANDI",
+      "endorsementTransparency": "Onay Şeffaflığı",
+      "endorsementsOnChain": "Tüm {{count}} onay zincir üzerinde kaydedilir. İşlem geçmişini Sui Explorer'da görüntüleyin.",
+      "endorsementsOnChain_plural": "Tüm {{count}} onay zincir üzerinde kaydedilir. İşlem geçmişini Sui Explorer'da görüntüleyin.",
+      "collusionWarning": "Aynı kullanıcılar arasındaki karşılıklı onaylar gizli anlaşmaya işaret edebilir"
+    },
+    "createJobModal": {
+      "title": "Yeni İş İlanı Ver",
+      "description": "İş ilanı oluşturun ve yetenek bulun. SUI ile ödeme.",
+      "jobTitle": "İş Başlığı",
+      "jobTitlePlaceholder": "örn. DeFi Dashboard UI Oluştur",
+      "jobDescription": "İş Açıklaması",
+      "jobDescriptionPlaceholder": "İş gereksinimlerini, teslim edilecekleri ve gerekli becerileri açıklayın...",
+      "requiredSkills": "Gerekli Beceriler (Etiketler)",
+      "skillPlaceholder": "Bir beceri yazın ve Enter'a basın (örn. JavaScript, React)",
+      "tagsAdded": "{{count}}/10 etiket eklendi. Popüler: {{tags}}",
+      "budget": "Bütçe (SUI)",
+      "budgetPlaceholder": "100",
+      "mockupWarning": "⚠️ Deneme Modu: Ödeme KESİLMEYECEK. Sadece gas ücretleri uygulanır.",
+      "howItWorks": "Nasıl çalışır:",
+      "step1": "Gerekli beceriler ve bütçe ile işinizi yayınlayın",
+      "step2": "Geliştiriciler teklifleriyle başvurur",
+      "step3": "Bir geliştirici seçip atarsınız",
+      "step4": "İş tamamlandığında her iki taraf da onaylar",
+      "step5": "Ödeme geliştiriciye yapılır",
+      "postJob": "İş İlanı Ver",
+      "posting": "Yayınlanıyor..."
+    },
+    "usernameSetup": {
+      "welcome": "PeerFlow'a Hoş Geldiniz",
+      "chooseUsername": "Başlamak için bir kullanıcı adı seçin",
+      "username": "Kullanıcı Adı",
+      "usernamePlaceholder": "Kullanıcı adınızı girin",
+      "usernameRules": "3-20 karakter, harf, rakam, _ ve - kullanılabilir",
+      "usernameTaken": "Bu kullanıcı adı zaten alınmış",
+      "sponsoredByEnoki": "Enoki tarafından sponsor edildi",
+      "sponsoredDesc": "İşleminiz otomatik olarak sponsor edilecek. Gas ücreti gerekmez!",
+      "getTestnet": "Testnet SUI Al",
+      "registerUsername": "Kullanıcı Adı Kaydet",
+      "registering": "Kaydediliyor...",
+      "alreadyHave": "Zaten kullanıcı adınız var mı?",
+      "skip": "Şimdilik geç"
+    },
+    "chat": {
+      "walletRequired": "Cüzdan Bağlantısı Gerekli",
+      "connectToMessage": "Mesaj göndermek için lütfen cüzdanınızı bağlayın.",
+      "online": "• Çevrimiçi",
+      "typePlaceholder": "Mesaj yazın...",
+      "noMessages": "Henüz mesaj yok",
+      "startConversation": "Sohbeti başlatmak için bir mesaj gönderin."
+    },
+    "footer": {
+      "built": "Sui Hackathon için yapıldı. 42'den ilham alınmıştır.",
+      "operational": "Sistem Aktif"
+    }
+  }
+}

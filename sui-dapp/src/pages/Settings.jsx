@@ -5,11 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Copy, Check } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { useWallet } from "@/contexts/WalletContext";
 import { formatBalance } from "@/lib/formatters";
 import { toast } from "sonner";
 
 const Settings = () => {
+  const { t } = useTranslation();
   const { isConnected, address, balance, userProfile } = useWallet();
   const [copied, setCopied] = useState(false);
 
@@ -27,9 +29,9 @@ const Settings = () => {
           <span className="text-3xl">🔒</span>
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold font-sans">Connect Your Wallet</h2>
+          <h2 className="text-2xl font-bold font-sans">{t('wallet.connect')}</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Connect your Sui wallet to access settings.
+            {t('errors.walletRequired')}
           </p>
         </div>
       </div>
@@ -39,7 +41,7 @@ const Settings = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold font-sans">Profile Settings</h1>
+        <h1 className="text-3xl font-bold font-sans">{t('settings.title')}</h1>
         <p className="text-muted-foreground font-mono text-sm">
           Manage your account and profile information
         </p>
@@ -48,7 +50,7 @@ const Settings = () => {
       {/* Account Information */}
       <Card className="border-border bg-card/50">
         <CardHeader>
-          <CardTitle className="font-sans">Account Information</CardTitle>
+          <CardTitle className="font-sans">{t('settings.profile')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -120,119 +122,6 @@ const Settings = () => {
           
           <div className="text-xs text-muted-foreground font-mono">
             ⚠️ You are on Sui Testnet. Transactions are not real.
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Danger Zone */}
-      <Card className="border-destructive/50 bg-card/50">
-        <CardHeader>
-          <CardTitle className="font-sans text-destructive">Danger Zone</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Clear Local Data</p>
-              <p className="text-sm text-muted-foreground">
-                Remove your username and profile from this browser
-              </p>
-            </div>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (confirm("Are you sure? This will clear your local profile data.")) {
-                  localStorage.removeItem(`user_${address}`);
-                  toast.success("Local data cleared. Please reconnect your wallet.");
-                  window.location.reload();
-                }
-              }}
-            >
-              Clear Data
-            </Button>
-          </div>
-
-          <div className="border-t border-destructive/20 pt-4 mt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-destructive">Clear All Users</p>
-                <p className="text-sm text-muted-foreground">
-                  Remove all user profiles from localStorage (Developer Tool)
-                </p>
-              </div>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (confirm("⚠️ This will delete ALL user profiles from localStorage. Continue?")) {
-                    let count = 0;
-                    for (let i = localStorage.length - 1; i >= 0; i--) {
-                      const key = localStorage.key(i);
-                      if (key && key.startsWith('user_')) {
-                        localStorage.removeItem(key);
-                        count++;
-                      }
-                    }
-                    toast.success(`Cleared ${count} user profile(s)`);
-                    window.location.reload();
-                  }
-                }}
-              >
-                Clear All Users
-              </Button>
-            </div>
-          </div>
-
-          <div className="border-t border-destructive/20 pt-4 mt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-destructive">Clear My Projects</p>
-                <p className="text-sm text-muted-foreground">
-                  Remove your projects from localStorage
-                </p>
-              </div>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (confirm("⚠️ This will delete all your projects. Continue?")) {
-                    localStorage.removeItem(`projects_${address}`);
-                    toast.success("Your projects cleared");
-                    window.location.reload();
-                  }
-                }}
-              >
-                Clear My Projects
-              </Button>
-            </div>
-          </div>
-
-          <div className="border-t border-destructive/20 pt-4 mt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-destructive">Clear All Projects</p>
-                <p className="text-sm text-muted-foreground">
-                  Remove all projects from all users (Developer Tool)
-                </p>
-              </div>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (confirm("⚠️ This will delete ALL projects from ALL users. Continue?")) {
-                    let count = 0;
-                    for (let i = localStorage.length - 1; i >= 0; i--) {
-                      const key = localStorage.key(i);
-                      if (key && key.startsWith('projects_')) {
-                        const data = JSON.parse(localStorage.getItem(key));
-                        count += data.length;
-                        localStorage.removeItem(key);
-                      }
-                    }
-                    toast.success(`Cleared ${count} project(s) from all users`);
-                    window.location.reload();
-                  }
-                }}
-              >
-                Clear All Projects
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>

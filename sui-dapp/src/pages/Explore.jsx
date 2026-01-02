@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Filter, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 import ProjectCard from "@/components/ProjectCard";
 import { useWallet } from "@/contexts/WalletContext";
 import { useState, useEffect } from "react";
@@ -10,6 +11,7 @@ import { endorseProject } from "@/lib/suiTransactions";
 import { CONTRACTS } from "@/config/contracts";
 
 const Explore = () => {
+  const { t } = useTranslation();
   const { isConnected, address } = useWallet();
   const client = useSuiClient();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
@@ -296,14 +298,14 @@ const Explore = () => {
         if (error.message?.includes("3")) {
           toast.error("You cannot endorse your own project!");
         } else if (error.message?.includes("2")) {
-          toast.error("You already endorsed this project on-chain!");
+          toast.error(t('explore.alreadyEndorsed'));
           // Keep it in local state since it's actually endorsed
           setUserEndorsements(prev => new Set([...prev, projectId]));
         } else {
-          toast.error("Endorsement failed: " + (error.message || "Unknown error"));
+          toast.error(t('errors.endorseFailed') + (error.message || t('errors.unknown')));
         }
       } else {
-        toast.error("Endorsement failed: " + (error.message || "Unknown error"));
+        toast.error(t('errors.endorseFailed') + (error.message || t('errors.unknown')));
       }
     } finally {
       setEndorsingId(null);
@@ -314,16 +316,16 @@ const Explore = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold font-sans">Explore Projects</h1>
+          <h1 className="text-3xl font-bold font-sans">{t('nav.explore')}</h1>
           <p className="text-muted-foreground font-mono text-sm">
-            Discover what the community is building.
+            {t('explore.subtitle')}
           </p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Search projects..." 
+              placeholder={t('explore.searchPlaceholder')} 
               className="pl-9 rounded-none border-border bg-background"
             />
           </div>

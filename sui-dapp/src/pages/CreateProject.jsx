@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 import SuccessScreen from "@/components/SuccessScreen";
 import { PROJECT_TYPES } from "@/constants/forms";
 import { useWallet } from "@/contexts/WalletContext";
@@ -15,6 +16,7 @@ import { createProject } from "@/lib/suiTransactions";
 import { CONTRACTS } from "@/config/contracts";
 
 const CreateProject = () => {
+  const { t } = useTranslation();
   const { isConnected, address, refreshData } = useWallet();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,9 +85,9 @@ const CreateProject = () => {
           <span className="text-3xl">🔒</span>
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold font-sans">Connect Your Wallet</h2>
+          <h2 className="text-2xl font-bold font-sans">{t('wallet.connect')}</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Connect your Sui wallet.
+            {t('errors.walletRequired')}
           </p>
         </div>
       </div>
@@ -107,7 +109,7 @@ const CreateProject = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold font-sans">Create Project</h1>
+        <h1 className="text-3xl font-bold font-sans">{t('contribute.title')}</h1>
         <p className="text-muted-foreground font-mono text-sm">
           Record your work on-chain. All submissions are subject to peer verification.
         </p>
@@ -117,14 +119,14 @@ const CreateProject = () => {
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="type" className="font-mono uppercase text-xs">Project Type</Label>
+              <Label htmlFor="type" className="font-mono uppercase text-xs">{t('contribute.projectType')}</Label>
               <Select 
                 required
                 value={projectData.type}
                 onValueChange={(value) => setProjectData(prev => ({ ...prev, type: value }))}
               >
                 <SelectTrigger className="rounded-none border-border bg-background">
-                  <SelectValue placeholder="Select type..." />
+                  <SelectValue placeholder={t('contribute.selectType')} />
                 </SelectTrigger>
                 <SelectContent className="rounded-none border-border">
                   {PROJECT_TYPES.map(({ value, label }) => (
@@ -135,7 +137,7 @@ const CreateProject = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="title" className="font-mono uppercase text-xs">Project Name / Title</Label>
+              <Label htmlFor="title" className="font-mono uppercase text-xs">{t('contribute.projectTitle')}</Label>
               <Input 
                 id="title" 
                 placeholder="e.g. Implemented Staking Module" 
@@ -147,7 +149,7 @@ const CreateProject = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="font-mono uppercase text-xs">Description</Label>
+              <Label htmlFor="description" className="font-mono uppercase text-xs">{t('contribute.description')}</Label>
               <Textarea 
                 id="description" 
                 placeholder="Describe what you built, the technologies used, and the impact..." 
@@ -159,11 +161,11 @@ const CreateProject = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="proof" className="font-mono uppercase text-xs">Proof Link (Github, Figma, etc)</Label>
+              <Label htmlFor="proof" className="font-mono uppercase text-xs">{t('contribute.proofLink')}</Label>
               <Input 
                 id="proof" 
                 type="url"
-                placeholder="https://github.com/..." 
+                placeholder={t('contribute.proofPlaceholder')} 
                 className="rounded-none border-border bg-background"
                 required
                 value={projectData.proofLink}
@@ -180,10 +182,10 @@ const CreateProject = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    SIGNING TRANSACTION...
+                    {t('contribute.creating').toUpperCase()}
                   </>
                 ) : (
-                  "SUBMIT ON-CHAIN"
+                  t('contribute.createProject').toUpperCase()
                 )}
               </Button>
               <p className="text-xs text-center text-muted-foreground mt-4 font-mono">

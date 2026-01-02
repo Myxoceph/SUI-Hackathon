@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThumbsUp, ExternalLink, Info } from "lucide-react";
@@ -23,6 +24,7 @@ const ProjectCard = ({
   isEndorsing,
   hasEndorsed // New prop - has user already endorsed this?
 }) => {
+  const { t } = useTranslation();
   const isOwnContribution = currentUserAddress && owner && 
     currentUserAddress.toLowerCase() === owner.toLowerCase();
   const timeAgo = formatTimeAgo(createdAt);
@@ -52,7 +54,7 @@ const ProjectCard = ({
             rel="noopener noreferrer"
             className="text-xs text-primary hover:underline inline-flex items-center gap-1"
           >
-            View Proof <ExternalLink className="h-3 w-3" />
+            {t('components.projectCard.viewProof')} <ExternalLink className="h-3 w-3" />
           </a>
         )}
       </div>
@@ -64,7 +66,7 @@ const ProjectCard = ({
           </div>
           <span className="text-xs font-mono">{shortAddress}</span>
           {isOwnContribution && (
-            <Badge variant="secondary" className="text-xs">YOU</Badge>
+            <Badge variant="secondary" className="text-xs">{t('components.common.you')}</Badge>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -76,14 +78,14 @@ const ProjectCard = ({
             disabled={isOwnContribution || isEndorsing || hasEndorsed}
             title={
               isOwnContribution 
-                ? "You cannot endorse your own contribution" 
+                ? t('components.projectCard.cannotEndorseOwn')
                 : hasEndorsed
-                ? "You already endorsed this contribution"
-                : "Endorse this contribution"
+                ? t('components.projectCard.alreadyEndorsed')
+                : t('components.projectCard.endorseThis')
             }
           >
             <ThumbsUp className={`h-3 w-3 ${hasEndorsed ? 'fill-current' : ''}`} />
-            {endorsements > 0 ? `${endorsements}` : hasEndorsed ? 'ENDORSED' : 'ENDORSE'}
+            {endorsements > 0 ? `${endorsements}` : hasEndorsed ? t('components.projectCard.endorsed') : t('common.endorse')}
           </Button>
           
           {endorsements > 0 && (
@@ -96,13 +98,12 @@ const ProjectCard = ({
                 </TooltipTrigger>
                 <TooltipContent side="left" className="max-w-xs">
                   <div className="space-y-2 text-xs">
-                    <p className="font-semibold">Endorsement Transparency</p>
+                    <p className="font-semibold">{t('components.projectCard.endorsementTransparency')}</p>
                     <p className="text-muted-foreground">
-                      All {endorsements} endorsement{endorsements > 1 ? 's' : ''} are recorded on-chain.
-                      View transaction history on Sui Explorer.
+                      {t('components.projectCard.endorsementsOnChain', { count: endorsements })}
                     </p>
                     <p className="text-yellow-500 text-[10px]">
-                      ⚠️ Mutual endorsements between same users may indicate collusion
+                      ⚠️ {t('components.projectCard.collusionWarning')}
                     </p>
                   </div>
                 </TooltipContent>
