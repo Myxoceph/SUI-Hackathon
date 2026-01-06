@@ -1,25 +1,25 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Fuel, ExternalLink, Server } from 'lucide-react';
-import { getSponsorshipMode } from '@/lib/backendSponsorship';
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Fuel, ExternalLink, Server } from 'lucide-react'
+import { getSponsorshipMode } from '@/lib/backendSponsorship'
 
 /**
  * Banner for gas sponsorship status
  * Shows different messages based on sponsorship state
  */
-function GasSponsorBanner({ 
-  hasGas, 
-  balance, 
-  isSponsored, 
+function GasSponsorBanner({
+  hasGas,
+  balance,
+  isSponsored,
   address,
-  onRequestGas 
+  onRequestGas,
 }) {
-  const sponsorshipMode = getSponsorshipMode();
-  
+  const sponsorshipMode = getSponsorshipMode()
+
   // Backend or Enoki sponsorship active
   if (isSponsored || sponsorshipMode.mode !== 'none') {
-    const isBackend = sponsorshipMode.mode === 'backend';
-    
+    const isBackend = sponsorshipMode.mode === 'backend'
+
     return (
       <Alert className="border-green-500/50 bg-green-500/10">
         {isBackend ? (
@@ -28,10 +28,11 @@ function GasSponsorBanner({
           <Fuel className="h-4 w-4 text-green-500" />
         )}
         <AlertDescription className="text-sm">
-          ⚡ <strong>{sponsorshipMode.label}</strong> - {sponsorshipMode.description}
+          ⚡ <strong>{sponsorshipMode.label}</strong> -{' '}
+          {sponsorshipMode.description}
         </AlertDescription>
       </Alert>
-    );
+    )
   }
 
   // User has gas
@@ -43,7 +44,7 @@ function GasSponsorBanner({
           💰 Balance: <strong>{balance?.toFixed(4)} SUI</strong>
         </AlertDescription>
       </Alert>
-    );
+    )
   }
 
   // No gas - Show faucet link
@@ -58,8 +59,8 @@ function GasSponsorBanner({
           size="sm"
           variant="outline"
           onClick={() => {
-            window.open(`https://faucet.sui.io/?address=${address}`, '_blank');
-            if (onRequestGas) onRequestGas();
+            window.open(`https://faucet.sui.io/?address=${address}`, '_blank')
+            if (onRequestGas) onRequestGas()
           }}
           className="shrink-0"
         >
@@ -68,7 +69,7 @@ function GasSponsorBanner({
         </Button>
       </AlertDescription>
     </Alert>
-  );
+  )
 }
 
-export default GasSponsorBanner;
+export default GasSponsorBanner

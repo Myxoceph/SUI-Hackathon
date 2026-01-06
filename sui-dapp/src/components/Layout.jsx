@@ -1,5 +1,5 @@
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 
 const Layout = ({ children }) => (
   <div className="min-h-screen bg-background font-mono selection:bg-primary selection:text-primary-foreground flex flex-col">
@@ -9,6 +9,6 @@ const Layout = ({ children }) => (
     </main>
     <Footer />
   </div>
-);
+)
 
-export default Layout;
+export default Layout

@@ -3,9 +3,7 @@
  * Communication with backend for Walrus deployment
  */
 
-import { Transaction } from '@mysten/sui/transactions';
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001'
 
 /**
  * Check if backend sponsorship is available
@@ -17,21 +15,21 @@ export async function checkBackendSponsorship() {
       headers: {
         'Content-Type': 'application/json',
       },
-    });
+    })
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
     }
 
-    const data = await response.json();
-    return data;
+    const data = await response.json()
+    return data
   } catch (error) {
-    console.error('Backend sponsorship check failed:', error);
+    console.error('Backend sponsorship check failed:', error)
     return {
       available: false,
       error: error.message,
       fallback: 'Direct Enoki sponsorship through wallet',
-    };
+    }
   }
 }
 
@@ -41,11 +39,15 @@ export async function checkBackendSponsorship() {
  * @param {string} sender - User's wallet address
  * @param {string} network - Network name (testnet/mainnet)
  */
-export async function requestSponsoredTransaction(transaction, sender, network = 'testnet') {
+export async function requestSponsoredTransaction(
+  transaction,
+  sender,
+  network = 'testnet'
+) {
   try {
     // Serialize transaction to base64
-    const transactionBytes = await transaction.build();
-    const transactionData = Buffer.from(transactionBytes).toString('base64');
+    const transactionBytes = await transaction.build()
+    const transactionData = Buffer.from(transactionBytes).toString('base64')
 
     const response = await fetch(`${BACKEND_URL}/api/sponsorship/sponsor`, {
       method: 'POST',
@@ -57,29 +59,29 @@ export async function requestSponsoredTransaction(transaction, sender, network =
         sender,
         network,
       }),
-    });
+    })
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || `HTTP ${response.status}`);
+      const error = await response.json()
+      throw new Error(error.error || `HTTP ${response.status}`)
     }
 
-    const data = await response.json();
-    
+    const data = await response.json()
+
     if (!data.success) {
-      throw new Error(data.error || 'Sponsorship failed');
+      throw new Error(data.error || 'Sponsorship failed')
     }
 
     return {
       success: true,
       sponsoredTransaction: data.sponsoredTransaction,
-    };
+    }
   } catch (error) {
-    console.error('Transaction sponsorship failed:', error);
+    console.error('Transaction sponsorship failed:', error)
     return {
       success: false,
       error: error.message,
-    };
+    }
   }
 }
 
@@ -88,7 +90,10 @@ export async function requestSponsoredTransaction(transaction, sender, network =
  * @param {Object} sponsoredTransaction - Sponsored transaction from backend
  * @param {string} signature - User's signature
  */
-export async function executeSponsoredTransaction(sponsoredTransaction, signature) {
+export async function executeSponsoredTransaction(
+  sponsoredTransaction,
+  signature
+) {
   try {
     const response = await fetch(`${BACKEND_URL}/api/sponsorship/execute`, {
       method: 'POST',
@@ -99,30 +104,30 @@ export async function executeSponsoredTransaction(sponsoredTransaction, signatur
         sponsoredTransaction,
         signature,
       }),
-    });
+    })
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || `HTTP ${response.status}`);
+      const error = await response.json()
+      throw new Error(error.error || `HTTP ${response.status}`)
     }
 
-    const data = await response.json();
-    
+    const data = await response.json()
+
     if (!data.success) {
-      throw new Error(data.error || 'Execution failed');
+      throw new Error(data.error || 'Execution failed')
     }
 
     return {
       success: true,
       digest: data.digest,
       effects: data.effects,
-    };
+    }
   } catch (error) {
-    console.error('Transaction execution failed:', error);
+    console.error('Transaction execution failed:', error)
     return {
       success: false,
       error: error.message,
-    };
+    }
   }
 }
 
@@ -131,8 +136,8 @@ export async function executeSponsoredTransaction(sponsoredTransaction, signatur
  * Returns true if VITE_BACKEND_URL is configured
  */
 export function shouldUseBackendSponsorship() {
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
-  return !!(backendUrl && !backendUrl.includes('localhost'));
+  const backendUrl = import.meta.env.VITE_BACKEND_URL
+  return !!(backendUrl && !backendUrl.includes('localhost'))
 }
 
 /**
@@ -144,21 +149,21 @@ export function getSponsorshipMode() {
       mode: 'backend',
       label: 'Backend Sponsored',
       description: 'Transactions sponsored by backend service',
-    };
+    }
   }
-  
-  const enokiKey = import.meta.env.VITE_ENOKI_PUBLIC_KEY;
+
+  const enokiKey = import.meta.env.VITE_ENOKI_PUBLIC_KEY
   if (enokiKey && !enokiKey.includes('YOUR_KEY_HERE')) {
     return {
       mode: 'enoki',
       label: 'Enoki Direct',
       description: 'Transactions sponsored through Enoki wallet',
-    };
+    }
   }
-  
+
   return {
     mode: 'none',
     label: 'No Sponsorship',
     description: 'User pays gas fees',
-  };
+  }
 }

@@ -1,69 +1,78 @@
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Filter, Plus, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { useTranslation } from 'react-i18next';
-import { useWallet } from "@/contexts/WalletContext";
-import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
-import { CONTRACTS, JOB_STATUS, JOBS_CONFIG } from "@/config/contracts";
-import JobCard from "@/components/JobCard";
-import CreateJobModal from "@/components/CreateJobModal";
-import { createJob, applyForJob, assignJob, confirmJobCompletion } from "@/lib/jobTransactions";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Search, Plus, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
+import { useWallet } from '@/contexts/WalletContext'
+import { useSignAndExecuteTransaction, useSuiClient } from '@mysten/dapp-kit'
+import { CONTRACTS, JOB_STATUS, JOBS_CONFIG } from '@/config/contracts'
+import JobCard from '@/components/JobCard'
+import CreateJobModal from '@/components/CreateJobModal'
+import {
+  createJob,
+  applyForJob,
+  assignJob,
+  confirmJobCompletion,
+} from '@/lib/jobTransactions'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 // Helper to check if jobs module is in demo mode
 const isJobsDemoMode = () => {
-  return !CONTRACTS.JOBS_REGISTRY || 
-         CONTRACTS.JOBS_REGISTRY === "TO_BE_DEPLOYED" || 
-         CONTRACTS.JOBS_REGISTRY === "DEMO_MODE" ||
-         !JOBS_CONFIG.PACKAGE_ID ||
-         JOBS_CONFIG.PACKAGE_ID === "TO_BE_DEPLOYED" ||
-         JOBS_CONFIG.PACKAGE_ID === "DEMO_MODE";
-};
+  return (
+    !CONTRACTS.JOBS_REGISTRY ||
+    CONTRACTS.JOBS_REGISTRY === 'TO_BE_DEPLOYED' ||
+    CONTRACTS.JOBS_REGISTRY === 'DEMO_MODE' ||
+    !JOBS_CONFIG.PACKAGE_ID ||
+    JOBS_CONFIG.PACKAGE_ID === 'TO_BE_DEPLOYED' ||
+    JOBS_CONFIG.PACKAGE_ID === 'DEMO_MODE'
+  )
+}
 
 const Jobs = () => {
-  const { t } = useTranslation();
-  const { isConnected, address } = useWallet();
-  const client = useSuiClient();
-  const { mutate: signAndExecute } = useSignAndExecuteTransaction();
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [processingId, setProcessingId] = useState(null);
-  const [userApplications, setUserApplications] = useState(new Set());
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
-  const [jobApplicants, setJobApplicants] = useState({}); // jobId -> [addresses]
+  const { t } = useTranslation()
+  const { isConnected, address } = useWallet()
+  const client = useSuiClient()
+  const { mutate: signAndExecute } = useSignAndExecuteTransaction()
+  const [jobs, setJobs] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [processingId, setProcessingId] = useState(null)
+  const [userApplications, setUserApplications] = useState(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeTab, setActiveTab] = useState('all')
+  const [jobApplicants, setJobApplicants] = useState({}) // jobId -> [addresses]
 
   useEffect(() => {
-    loadAllJobs();
-    
-    const interval = setInterval(() => {
-      loadAllJobs();
-    }, 30000);
+    loadAllJobs()
 
-    return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(() => {
+      loadAllJobs()
+    }, 30000)
+
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (address && jobs.length > 0) {
-      checkUserApplications(jobs.map(j => j.id));
+      checkUserApplications(jobs.map(j => j.id))
     } else if (!address) {
-      setUserApplications(new Set());
+      setUserApplications(new Set())
     }
-  }, [address, jobs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, jobs])
 
   const loadAllJobs = async () => {
-    if (loading) return;
-    setLoading(true);
-    
+    if (loading) return
+    setLoading(true)
+
     try {
       if (isJobsDemoMode()) {
         // Load mock data for demo
-        const mockJobs = getMockJobs();
-        setJobs(mockJobs);
-        return;
+        const mockJobs = getMockJobs()
+        setJobs(mockJobs)
+        return
       }
 
       // Load from on-chain using events
@@ -73,19 +82,21 @@ const Jobs = () => {
         },
         limit: 50,
         order: 'descending',
-      });
+      })
 
       // Build a map of job_id -> event timestamp
-      const jobTimestamps = {};
+      const jobTimestamps = {}
       events.data.forEach(event => {
-        jobTimestamps[event.parsedJson.job_id] = parseInt(event.timestampMs || Date.now());
-      });
+        jobTimestamps[event.parsedJson.job_id] = parseInt(
+          event.timestampMs || Date.now()
+        )
+      })
 
-      const jobIds = events.data.map(event => event.parsedJson.job_id);
+      const jobIds = events.data.map(event => event.parsedJson.job_id)
 
       if (jobIds.length === 0) {
-        setJobs([]);
-        return;
+        setJobs([])
+        return
       }
 
       // Fetch actual job objects
@@ -95,54 +106,57 @@ const Jobs = () => {
           showContent: true,
           showOwner: true,
         },
-      });
+      })
 
       const jobsList = objectsResponse
         .filter(obj => obj.data?.content)
         .map(obj => {
-          const fields = obj.data.content.fields || {};
-          const jobId = obj.data.objectId;
-          
+          const fields = obj.data.content.fields || {}
+          const jobId = obj.data.objectId
+
           // Parse Option<address> - can be in different formats
-          let assignedTo = null;
+          let assignedTo = null
           if (fields.assigned_to) {
             // Could be { Some: "0x..." } or { vec: ["0x..."] } or just the address
             if (typeof fields.assigned_to === 'string') {
-              assignedTo = fields.assigned_to;
+              assignedTo = fields.assigned_to
             } else if (fields.assigned_to.Some) {
-              assignedTo = fields.assigned_to.Some;
-            } else if (fields.assigned_to.vec && fields.assigned_to.vec.length > 0) {
-              assignedTo = fields.assigned_to.vec[0];
+              assignedTo = fields.assigned_to.Some
+            } else if (
+              fields.assigned_to.vec &&
+              fields.assigned_to.vec.length > 0
+            ) {
+              assignedTo = fields.assigned_to.vec[0]
             }
           }
-          
+
           return {
             id: jobId,
             owner: fields.owner,
             title: fields.title,
             description: fields.description,
             tags: fields.tags || [],
-            budgetSui: parseInt(fields.budget_sui || "0"),
-            status: parseInt(fields.status || "0"),
+            budgetSui: parseInt(fields.budget_sui || '0'),
+            status: parseInt(fields.status || '0'),
             assignedTo,
             ownerConfirmed: fields.owner_confirmed || false,
             workerConfirmed: fields.worker_confirmed || false,
-            applicantCount: parseInt(fields.applicant_count || "0"),
+            applicantCount: parseInt(fields.applicant_count || '0'),
             // Use event timestamp (milliseconds) instead of epoch number
             createdAt: jobTimestamps[jobId] || Date.now(),
-          };
-        });
+          }
+        })
 
-      jobsList.sort((a, b) => b.createdAt - a.createdAt);
-      setJobs(jobsList);
+      jobsList.sort((a, b) => b.createdAt - a.createdAt)
+      setJobs(jobsList)
     } catch (error) {
-      console.error('Error loading jobs:', error);
+      console.error('Error loading jobs:', error)
       // Use mock data on error
-      setJobs(getMockJobs());
+      setJobs(getMockJobs())
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const getMockJobs = () => {
     // Demo/mock jobs for when contract is not deployed
@@ -151,7 +165,8 @@ const Jobs = () => {
         id: 'mock-1',
         owner: '0x1234567890abcdef1234567890abcdef12345678',
         title: 'Build DeFi Dashboard UI',
-        description: 'Looking for a React developer to build a modern DeFi dashboard with charts, wallet connection, and transaction history. Must be responsive and follow our design system.',
+        description:
+          'Looking for a React developer to build a modern DeFi dashboard with charts, wallet connection, and transaction history. Must be responsive and follow our design system.',
         tags: ['React', 'TypeScript', 'DeFi', 'UI/UX'],
         budgetSui: 500_000_000_000, // 500 SUI
         status: JOB_STATUS.OPEN,
@@ -165,7 +180,8 @@ const Jobs = () => {
         id: 'mock-2',
         owner: '0xabcdef1234567890abcdef1234567890abcdef12',
         title: 'Smart Contract Audit',
-        description: 'Need an experienced Move developer to audit our NFT marketplace contracts. Security focused review with detailed report required.',
+        description:
+          'Need an experienced Move developer to audit our NFT marketplace contracts. Security focused review with detailed report required.',
         tags: ['Move', 'Security', 'Smart Contracts', 'NFT'],
         budgetSui: 1000_000_000_000, // 1000 SUI
         status: JOB_STATUS.OPEN,
@@ -179,7 +195,8 @@ const Jobs = () => {
         id: 'mock-3',
         owner: '0x9876543210fedcba9876543210fedcba98765432',
         title: 'API Integration for Sui Wallet',
-        description: 'Integrate our backend API with Sui wallet for seamless user authentication and transaction signing. Node.js experience required.',
+        description:
+          'Integrate our backend API with Sui wallet for seamless user authentication and transaction signing. Node.js experience required.',
         tags: ['Node.js', 'API', 'Web3', 'Backend'],
         budgetSui: 300_000_000_000, // 300 SUI
         status: JOB_STATUS.ASSIGNED,
@@ -189,67 +206,69 @@ const Jobs = () => {
         applicantCount: 5,
         createdAt: Date.now() - 259200000,
       },
-    ];
-  };
+    ]
+  }
 
-  const checkUserApplications = async (jobIds) => {
+  const checkUserApplications = async jobIds => {
     if (!address || isJobsDemoMode()) {
-      return;
+      return
     }
 
     try {
-      const applied = new Set();
-      
+      const applied = new Set()
+
       for (const jobId of jobIds) {
         try {
           const registry = await client.getObject({
             id: CONTRACTS.JOBS_REGISTRY,
             options: { showContent: true },
-          });
+          })
 
-          const checkTableId = registry.data?.content?.fields?.application_check?.fields?.id?.id;
-          if (!checkTableId) continue;
+          const checkTableId =
+            registry.data?.content?.fields?.application_check?.fields?.id?.id
+          if (!checkTableId) continue
 
           const jobCheckTable = await client.getDynamicFieldObject({
             parentId: checkTableId,
-            name: { type: "0x2::object::ID", value: jobId },
-          });
+            name: { type: '0x2::object::ID', value: jobId },
+          })
 
-          const innerTableId = jobCheckTable.data?.content?.fields?.value?.fields?.id?.id;
-          if (!innerTableId) continue;
+          const innerTableId =
+            jobCheckTable.data?.content?.fields?.value?.fields?.id?.id
+          if (!innerTableId) continue
 
           const userCheck = await client.getDynamicFieldObject({
             parentId: innerTableId,
-            name: { type: "address", value: address },
-          });
+            name: { type: 'address', value: address },
+          })
 
           if (userCheck.data) {
-            applied.add(jobId);
+            applied.add(jobId)
           }
-        } catch (e) {
+        } catch {
           // User hasn't applied
         }
       }
 
-      setUserApplications(applied);
+      setUserApplications(applied)
     } catch (error) {
-      console.error('Error checking applications:', error);
+      console.error('Error checking applications:', error)
     }
-  };
+  }
 
-  const handleCreateJob = async (jobData) => {
+  const handleCreateJob = async jobData => {
     if (!isConnected) {
-      toast.error("Please connect your wallet first!");
-      return;
+      toast.error('Please connect your wallet first!')
+      return
     }
 
     if (isJobsDemoMode()) {
       // Demo mode - just show success
-      toast.success("Job created! (Demo Mode)", {
-        description: "Contract not deployed yet. This is a preview.",
-      });
-      setShowCreateModal(false);
-      
+      toast.success('Job created! (Demo Mode)', {
+        description: 'Contract not deployed yet. This is a preview.',
+      })
+      setShowCreateModal(false)
+
       // Add to mock jobs
       const newJob = {
         id: `mock-${Date.now()}`,
@@ -261,132 +280,147 @@ const Jobs = () => {
         workerConfirmed: false,
         applicantCount: 0,
         createdAt: Date.now(),
-      };
-      setJobs(prev => [newJob, ...prev]);
-      return;
+      }
+      setJobs(prev => [newJob, ...prev])
+      return
     }
 
-    setProcessingId('creating');
+    setProcessingId('creating')
     try {
-      const result = await createJob(signAndExecute, jobData);
-      toast.success("Job posted successfully! 🎉", {
+      const result = await createJob(signAndExecute, jobData)
+      toast.success('Job posted successfully! 🎉', {
         description: `Transaction: ${result.digest?.slice(0, 8)}...`,
-      });
-      setShowCreateModal(false);
-      loadAllJobs();
+      })
+      setShowCreateModal(false)
+      loadAllJobs()
     } catch (error) {
-      console.error("Create job error:", error);
-      toast.error("Failed to create job: " + (error.message || "Unknown error"));
+      console.error('Create job error:', error)
+      toast.error('Failed to create job: ' + (error.message || 'Unknown error'))
     } finally {
-      setProcessingId(null);
+      setProcessingId(null)
     }
-  };
+  }
 
   const handleApply = async (jobId, coverLetter) => {
     if (!isConnected) {
-      toast.error("Please connect your wallet to apply!");
-      return;
+      toast.error('Please connect your wallet to apply!')
+      return
     }
 
-    const job = jobs.find(j => j.id === jobId);
+    const job = jobs.find(j => j.id === jobId)
     if (job && address && job.owner.toLowerCase() === address.toLowerCase()) {
-      toast.error("You cannot apply to your own job!");
-      return;
+      toast.error('You cannot apply to your own job!')
+      return
     }
 
     if (userApplications.has(jobId)) {
-      toast.error("You already applied for this job!");
-      return;
+      toast.error('You already applied for this job!')
+      return
     }
 
     if (isJobsDemoMode()) {
-      toast.success("Application submitted! (Demo Mode)");
-      setUserApplications(prev => new Set([...prev, jobId]));
-      setJobs(prev => prev.map(j => 
-        j.id === jobId ? { ...j, applicantCount: j.applicantCount + 1 } : j
-      ));
-      return;
+      toast.success('Application submitted! (Demo Mode)')
+      setUserApplications(prev => new Set([...prev, jobId]))
+      setJobs(prev =>
+        prev.map(j =>
+          j.id === jobId ? { ...j, applicantCount: j.applicantCount + 1 } : j
+        )
+      )
+      return
     }
 
-    setProcessingId(jobId);
+    setProcessingId(jobId)
     try {
-      const result = await applyForJob(signAndExecute, jobId, coverLetter);
+      const result = await applyForJob(signAndExecute, jobId, coverLetter)
       toast.success(t('jobs.applicationSuccess'), {
         description: `Transaction: ${result.digest?.slice(0, 8)}...`,
-      });
-      setUserApplications(prev => new Set([...prev, jobId]));
-      loadAllJobs();
+      })
+      setUserApplications(prev => new Set([...prev, jobId]))
+      loadAllJobs()
     } catch (error) {
-      console.error("Apply error:", error);
-      toast.error(t('errors.applyFailed') + (error.message || t('errors.unknown')));
+      console.error('Apply error:', error)
+      toast.error(
+        t('errors.applyFailed') + (error.message || t('errors.unknown'))
+      )
     } finally {
-      setProcessingId(null);
+      setProcessingId(null)
     }
-  };
+  }
 
   const handleAssign = async (jobId, workerAddress) => {
     if (isJobsDemoMode()) {
-      toast.success("Worker assigned! (Demo Mode)");
-      setJobs(prev => prev.map(j => 
-        j.id === jobId ? { ...j, status: JOB_STATUS.ASSIGNED, assignedTo: workerAddress } : j
-      ));
-      return;
+      toast.success('Worker assigned! (Demo Mode)')
+      setJobs(prev =>
+        prev.map(j =>
+          j.id === jobId
+            ? { ...j, status: JOB_STATUS.ASSIGNED, assignedTo: workerAddress }
+            : j
+        )
+      )
+      return
     }
 
-    setProcessingId(jobId);
+    setProcessingId(jobId)
     try {
-      const result = await assignJob(signAndExecute, jobId, workerAddress);
+      const result = await assignJob(signAndExecute, jobId, workerAddress)
       toast.success(t('jobs.assignSuccess'), {
         description: `Transaction: ${result.digest?.slice(0, 8)}...`,
-      });
-      loadAllJobs();
+      })
+      loadAllJobs()
     } catch (error) {
-      console.error("Assign error:", error);
-      toast.error(t('errors.assignFailed') + (error.message || t('errors.unknown')));
+      console.error('Assign error:', error)
+      toast.error(
+        t('errors.assignFailed') + (error.message || t('errors.unknown'))
+      )
     } finally {
-      setProcessingId(null);
+      setProcessingId(null)
     }
-  };
+  }
 
-  const handleConfirmCompletion = async (jobId) => {
+  const handleConfirmCompletion = async jobId => {
     if (isJobsDemoMode()) {
-      const job = jobs.find(j => j.id === jobId);
-      const isOwner = job && address && job.owner.toLowerCase() === address.toLowerCase();
-      
-      setJobs(prev => prev.map(j => {
-        if (j.id !== jobId) return j;
-        const updated = { ...j };
-        if (isOwner) updated.ownerConfirmed = true;
-        else updated.workerConfirmed = true;
-        
-        if (updated.ownerConfirmed && updated.workerConfirmed) {
-          updated.status = JOB_STATUS.COMPLETED;
-          toast.success("Job completed! Payment released. (Demo Mode)");
-        } else {
-          toast.success("Completion confirmed! Waiting for other party. (Demo Mode)");
-        }
-        return updated;
-      }));
-      return;
+      const job = jobs.find(j => j.id === jobId)
+      const isOwner =
+        job && address && job.owner.toLowerCase() === address.toLowerCase()
+
+      setJobs(prev =>
+        prev.map(j => {
+          if (j.id !== jobId) return j
+          const updated = { ...j }
+          if (isOwner) updated.ownerConfirmed = true
+          else updated.workerConfirmed = true
+
+          if (updated.ownerConfirmed && updated.workerConfirmed) {
+            updated.status = JOB_STATUS.COMPLETED
+            toast.success('Job completed! Payment released. (Demo Mode)')
+          } else {
+            toast.success(
+              'Completion confirmed! Waiting for other party. (Demo Mode)'
+            )
+          }
+          return updated
+        })
+      )
+      return
     }
 
-    setProcessingId(jobId);
+    setProcessingId(jobId)
     try {
-      const result = await confirmJobCompletion(signAndExecute, jobId);
-      toast.success("Completion confirmed! 🎉", {
+      const result = await confirmJobCompletion(signAndExecute, jobId)
+      toast.success('Completion confirmed! 🎉', {
         description: `Transaction: ${result.digest?.slice(0, 8)}...`,
-      });
-      loadAllJobs();
+      })
+      loadAllJobs()
     } catch (error) {
-      console.error("Confirm error:", error);
-      toast.error("Failed to confirm: " + (error.message || "Unknown error"));
+      console.error('Confirm error:', error)
+      toast.error('Failed to confirm: ' + (error.message || 'Unknown error'))
     } finally {
-      setProcessingId(null);
+      setProcessingId(null)
     }
-  };
+  }
 
   // Load applicants for a specific job from on-chain registry
-  const loadJobApplicants = async (jobId) => {
+  const loadJobApplicants = async jobId => {
     if (isJobsDemoMode()) {
       // Demo mode - return mock applicants
       setJobApplicants(prev => ({
@@ -395,9 +429,9 @@ const Jobs = () => {
           '0x1234567890abcdef1234567890abcdef12345678',
           '0xabcdef1234567890abcdef1234567890abcdef12',
           '0x9876543210fedcba9876543210fedcba98765432',
-        ].slice(0, jobs.find(j => j.id === jobId)?.applicantCount || 3)
-      }));
-      return;
+        ].slice(0, jobs.find(j => j.id === jobId)?.applicantCount || 3),
+      }))
+      return
     }
 
     try {
@@ -405,59 +439,65 @@ const Jobs = () => {
       const registry = await client.getObject({
         id: CONTRACTS.JOBS_REGISTRY,
         options: { showContent: true },
-      });
+      })
 
-      const applicantsTableId = registry.data?.content?.fields?.applicants?.fields?.id?.id;
+      const applicantsTableId =
+        registry.data?.content?.fields?.applicants?.fields?.id?.id
       if (!applicantsTableId) {
-        console.error('Could not find applicants table');
-        return;
+        console.error('Could not find applicants table')
+        return
       }
 
       // Get the applicants vector for this job from dynamic field
       const applicantsField = await client.getDynamicFieldObject({
         parentId: applicantsTableId,
-        name: { type: "0x2::object::ID", value: jobId },
-      });
+        name: { type: '0x2::object::ID', value: jobId },
+      })
 
-      const applicantsList = applicantsField.data?.content?.fields?.value || [];
-      
+      const applicantsList = applicantsField.data?.content?.fields?.value || []
+
       setJobApplicants(prev => ({
         ...prev,
-        [jobId]: applicantsList
-      }));
+        [jobId]: applicantsList,
+      }))
     } catch (error) {
-      console.error('Error loading applicants:', error);
+      console.error('Error loading applicants:', error)
       setJobApplicants(prev => ({
         ...prev,
-        [jobId]: []
-      }));
+        [jobId]: [],
+      }))
     }
-  };
+  }
 
   // Filter jobs based on tab and search
   const filteredJobs = jobs.filter(job => {
     // Tab filter
-    if (activeTab === 'my-jobs' && (!address || job.owner.toLowerCase() !== address.toLowerCase())) {
-      return false;
+    if (
+      activeTab === 'my-jobs' &&
+      (!address || job.owner.toLowerCase() !== address.toLowerCase())
+    ) {
+      return false
     }
     if (activeTab === 'my-applications' && !userApplications.has(job.id)) {
-      return false;
+      return false
     }
     if (activeTab === 'open' && job.status !== JOB_STATUS.OPEN) {
-      return false;
+      return false
     }
 
     // Search filter
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const matchesTitle = job.title.toLowerCase().includes(query);
-      const matchesDesc = job.description.toLowerCase().includes(query);
-      const matchesTags = job.tags.some(tag => tag.toLowerCase().includes(query));
-      return matchesTitle || matchesDesc || matchesTags;
+      const query = searchQuery.toLowerCase()
+      const matchesTitle = job.title.toLowerCase().includes(query)
+      const matchesDesc = job.description.toLowerCase().includes(query)
+      const matchesTags = job.tags.some(tag =>
+        tag.toLowerCase().includes(query)
+      )
+      return matchesTitle || matchesDesc || matchesTags
     }
 
-    return true;
-  });
+    return true
+  })
 
   return (
     <div className="space-y-8">
@@ -472,14 +512,14 @@ const Jobs = () => {
         <div className="flex gap-2 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search jobs or skills..." 
+            <Input
+              placeholder="Search jobs or skills..."
               className="pl-9 rounded-none border-border bg-background"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button 
+          <Button
             onClick={() => setShowCreateModal(true)}
             className="rounded-none gap-2"
             disabled={!isConnected}
@@ -494,8 +534,8 @@ const Jobs = () => {
       {isJobsDemoMode() && (
         <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-none">
           <p className="text-sm text-yellow-500 font-mono">
-            ⚠️ Demo Mode: Jobs feature is running in preview mode. 
-            All actions are simulated locally.
+            ⚠️ Demo Mode: Jobs feature is running in preview mode. All actions
+            are simulated locally.
           </p>
         </div>
       )}
@@ -503,18 +543,30 @@ const Jobs = () => {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="rounded-none border border-border bg-background w-full justify-start">
-          <TabsTrigger value="all" className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger
+            value="all"
+            className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             All Jobs
           </TabsTrigger>
-          <TabsTrigger value="open" className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger
+            value="open"
+            className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
             Open
           </TabsTrigger>
           {isConnected && (
             <>
-              <TabsTrigger value="my-jobs" className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger
+                value="my-jobs"
+                className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
                 My Jobs
               </TabsTrigger>
-              <TabsTrigger value="my-applications" className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger
+                value="my-applications"
+                className="rounded-none data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
                 My Applications
               </TabsTrigger>
             </>
@@ -528,9 +580,9 @@ const Jobs = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : filteredJobs.length > 0 ? (
-              filteredJobs.map((job) => (
-                <JobCard 
-                  key={job.id} 
+              filteredJobs.map(job => (
+                <JobCard
+                  key={job.id}
                   job={job}
                   currentUserAddress={address}
                   isProcessing={processingId === job.id}
@@ -548,11 +600,11 @@ const Jobs = () => {
                 <div className="space-y-2">
                   <p className="text-lg font-semibold">No Jobs Found</p>
                   <p className="text-sm text-muted-foreground">
-                    {activeTab === 'my-jobs' 
+                    {activeTab === 'my-jobs'
                       ? "You haven't posted any jobs yet."
                       : activeTab === 'my-applications'
-                      ? "You haven't applied to any jobs yet."
-                      : "Be the first to post a job!"}
+                        ? "You haven't applied to any jobs yet."
+                        : 'Be the first to post a job!'}
                   </p>
                 </div>
               </div>
@@ -569,7 +621,7 @@ const Jobs = () => {
         isSubmitting={processingId === 'creating'}
       />
     </div>
-  );
-};
+  )
+}
 
-export default Jobs;
+export default Jobs

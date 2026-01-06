@@ -1,8 +1,8 @@
-import { Component } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { getErrorBoundaryMessage } from '@/lib/errors';
+import { Component } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { getErrorBoundaryMessage } from '@/lib/errors'
 
 /**
  * Error Boundary Component
@@ -10,26 +10,26 @@ import { getErrorBoundaryMessage } from '@/lib/errors';
  */
 class ErrorBoundary extends Component {
   constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
+    super(props)
+    this.state = { hasError: false, error: null }
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo);
+    console.error('ErrorBoundary caught:', error, errorInfo)
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
-    window.location.reload();
-  };
+    this.setState({ hasError: false, error: null })
+    window.location.reload()
+  }
 
   render() {
     if (this.state.hasError) {
-      const errorDetails = getErrorBoundaryMessage(this.state.error);
+      const errorDetails = getErrorBoundaryMessage(this.state.error)
 
       return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -46,22 +46,18 @@ class ErrorBoundary extends Component {
                 </div>
               </AlertDescription>
             </Alert>
-            
-            <Button 
-              onClick={this.handleReset}
-              className="w-full"
-              size="lg"
-            >
+
+            <Button onClick={this.handleReset} className="w-full" size="lg">
               <RefreshCw className="h-4 w-4 mr-2" />
               Reload Page
             </Button>
           </div>
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
-export default ErrorBoundary;
+export default ErrorBoundary

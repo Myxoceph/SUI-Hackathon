@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { X, Loader2, Plus } from "lucide-react";
-import { SKILL_TAGS } from "@/config/contracts";
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { X, Loader2, Plus } from 'lucide-react'
+import { SKILL_TAGS } from '@/config/contracts'
 import {
   Dialog,
   DialogContent,
@@ -14,66 +14,72 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
 
 const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     tags: [],
     budgetSui: '',
-  });
-  const [tagInput, setTagInput] = useState('');
-  const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+  })
+  const [tagInput, setTagInput] = useState('')
+  const [showTagSuggestions, setShowTagSuggestions] = useState(false)
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
+  const handleSubmit = e => {
+    e.preventDefault()
+
     // Convert SUI to MIST (1 SUI = 1,000,000,000 MIST)
-    const budgetMist = Math.floor(parseFloat(formData.budgetSui) * 1_000_000_000);
-    
+    const budgetMist = Math.floor(
+      parseFloat(formData.budgetSui) * 1_000_000_000
+    )
+
     onSubmit({
       title: formData.title,
       description: formData.description,
       tags: formData.tags,
       budgetSui: budgetMist,
-    });
-  };
+    })
+  }
 
-  const addTag = (tag) => {
-    const normalizedTag = tag.replace(/^#/, '').trim();
-    if (normalizedTag && !formData.tags.includes(normalizedTag) && formData.tags.length < 10) {
+  const addTag = tag => {
+    const normalizedTag = tag.replace(/^#/, '').trim()
+    if (
+      normalizedTag &&
+      !formData.tags.includes(normalizedTag) &&
+      formData.tags.length < 10
+    ) {
       setFormData(prev => ({
         ...prev,
-        tags: [...prev.tags, normalizedTag]
-      }));
+        tags: [...prev.tags, normalizedTag],
+      }))
     }
-    setTagInput('');
-    setShowTagSuggestions(false);
-  };
+    setTagInput('')
+    setShowTagSuggestions(false)
+  }
 
-  const removeTag = (tagToRemove) => {
+  const removeTag = tagToRemove => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
+      tags: prev.tags.filter(tag => tag !== tagToRemove),
+    }))
+  }
 
-  const handleTagInputKeyDown = (e) => {
+  const handleTagInputKeyDown = e => {
     if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
+      e.preventDefault()
       if (tagInput.trim()) {
-        addTag(tagInput);
+        addTag(tagInput)
       }
     }
-  };
+  }
 
   const filteredSuggestions = SKILL_TAGS.filter(
-    tag => 
-      tag.toLowerCase().includes(tagInput.toLowerCase()) && 
+    tag =>
+      tag.toLowerCase().includes(tagInput.toLowerCase()) &&
       !formData.tags.includes(tag)
-  ).slice(0, 6);
+  ).slice(0, 6)
 
   const resetForm = () => {
     setFormData({
@@ -81,25 +87,27 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
       description: '',
       tags: [],
       budgetSui: '',
-    });
-    setTagInput('');
-  };
+    })
+    setTagInput('')
+  }
 
   const handleClose = () => {
-    resetForm();
-    onClose();
-  };
+    resetForm()
+    onClose()
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="rounded-none border-border max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-sans text-xl">{t('components.createJobModal.title')}</DialogTitle>
+          <DialogTitle className="font-sans text-xl">
+            {t('components.createJobModal.title')}
+          </DialogTitle>
           <DialogDescription className="font-mono text-xs">
             {t('components.createJobModal.description')}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           {/* Title */}
           <div className="space-y-2">
@@ -110,7 +118,9 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
               id="title"
               placeholder={t('components.createJobModal.jobTitlePlaceholder')}
               value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              onChange={e =>
+                setFormData(prev => ({ ...prev, title: e.target.value }))
+              }
               className="rounded-none border-border"
               required
             />
@@ -118,14 +128,21 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="font-mono uppercase text-xs">
+            <Label
+              htmlFor="description"
+              className="font-mono uppercase text-xs"
+            >
               {t('components.createJobModal.jobDescription')} *
             </Label>
             <Textarea
               id="description"
-              placeholder={t('components.createJobModal.jobDescriptionPlaceholder')}
+              placeholder={t(
+                'components.createJobModal.jobDescriptionPlaceholder'
+              )}
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={e =>
+                setFormData(prev => ({ ...prev, description: e.target.value }))
+              }
               className="rounded-none border-border min-h-[150px]"
               required
             />
@@ -136,18 +153,18 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
             <Label className="font-mono uppercase text-xs">
               {t('components.createJobModal.requiredSkills')}
             </Label>
-            
+
             {/* Selected Tags */}
             {formData.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-2">
                 {formData.tags.map((tag, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="secondary" 
+                  <Badge
+                    key={index}
+                    variant="secondary"
                     className="rounded-none text-xs font-mono gap-1 pr-1"
                   >
                     #{tag}
-                    <button 
+                    <button
                       type="button"
                       onClick={() => removeTag(tag)}
                       className="ml-1 hover:bg-destructive/20 rounded p-0.5"
@@ -164,36 +181,45 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
               <Input
                 placeholder={t('components.createJobModal.skillPlaceholder')}
                 value={tagInput}
-                onChange={(e) => {
-                  setTagInput(e.target.value);
-                  setShowTagSuggestions(true);
+                onChange={e => {
+                  setTagInput(e.target.value)
+                  setShowTagSuggestions(true)
                 }}
                 onKeyDown={handleTagInputKeyDown}
                 onFocus={() => setShowTagSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowTagSuggestions(false), 200)}
+                onBlur={() =>
+                  setTimeout(() => setShowTagSuggestions(false), 200)
+                }
                 className="rounded-none border-border"
                 disabled={formData.tags.length >= 10}
               />
-              
+
               {/* Suggestions Dropdown */}
-              {showTagSuggestions && tagInput && filteredSuggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-background border border-border shadow-lg">
-                  {filteredSuggestions.map((tag, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => addTag(tag)}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted font-mono"
-                    >
-                      #{tag}
-                    </button>
-                  ))}
-                </div>
-              )}
+              {showTagSuggestions &&
+                tagInput &&
+                filteredSuggestions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-background border border-border shadow-lg">
+                    {filteredSuggestions.map((tag, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => addTag(tag)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-muted font-mono"
+                      >
+                        #{tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
             </div>
-            
+
             <p className="text-xs text-muted-foreground font-mono">
-              {t('components.createJobModal.tagsAdded', { count: formData.tags.length, tags: SKILL_TAGS.slice(0, 5).map(t => `#${t}`).join(', ') })}
+              {t('components.createJobModal.tagsAdded', {
+                count: formData.tags.length,
+                tags: SKILL_TAGS.slice(0, 5)
+                  .map(t => `#${t}`)
+                  .join(', '),
+              })}
             </p>
           </div>
 
@@ -210,7 +236,9 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
                 min="1"
                 placeholder={t('components.createJobModal.budgetPlaceholder')}
                 value={formData.budgetSui}
-                onChange={(e) => setFormData(prev => ({ ...prev, budgetSui: e.target.value }))}
+                onChange={e =>
+                  setFormData(prev => ({ ...prev, budgetSui: e.target.value }))
+                }
                 className="rounded-none border-border pr-16"
                 required
               />
@@ -225,7 +253,9 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
 
           {/* Info Box */}
           <div className="bg-muted/50 p-4 border border-border space-y-2 text-xs">
-            <p className="font-mono font-bold">{t('components.createJobModal.howItWorks')}</p>
+            <p className="font-mono font-bold">
+              {t('components.createJobModal.howItWorks')}
+            </p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground font-mono">
               <li>{t('components.createJobModal.step1')}</li>
               <li>{t('components.createJobModal.step2')}</li>
@@ -236,17 +266,22 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
           </div>
 
           <DialogFooter className="gap-2">
-            <Button 
+            <Button
               type="button"
-              variant="outline" 
+              variant="outline"
               onClick={handleClose}
               className="rounded-none"
             >
               {t('common.cancel')}
             </Button>
-            <Button 
+            <Button
               type="submit"
-              disabled={isSubmitting || !formData.title || !formData.description || !formData.budgetSui}
+              disabled={
+                isSubmitting ||
+                !formData.title ||
+                !formData.description ||
+                !formData.budgetSui
+              }
               className="rounded-none"
             >
               {isSubmitting ? (
@@ -265,7 +300,7 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit, isSubmitting }) => {
         </form>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default CreateJobModal;
+export default CreateJobModal

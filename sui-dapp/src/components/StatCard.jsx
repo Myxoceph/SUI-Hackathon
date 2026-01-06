@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const StatCard = ({ label, value, icon: Icon }) => (
   <Card className="border-border bg-card/50 hover:bg-card transition-colors">
@@ -12,6 +12,6 @@ const StatCard = ({ label, value, icon: Icon }) => (
       <div className="text-2xl font-bold font-sans">{value}</div>
     </CardContent>
   </Card>
-);
+)
 
-export default StatCard;
+export default StatCard

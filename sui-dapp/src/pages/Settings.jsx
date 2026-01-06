@@ -1,26 +1,26 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Copy, Check } from "lucide-react";
-import { useTranslation } from 'react-i18next';
-import { useWallet } from "@/contexts/WalletContext";
-import { formatBalance } from "@/lib/formatters";
-import { toast } from "sonner";
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { ExternalLink, Copy, Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useWallet } from '@/contexts/WalletContext'
+import { formatBalance } from '@/lib/formatters'
+import { toast } from 'sonner'
 
 const Settings = () => {
-  const { t } = useTranslation();
-  const { isConnected, address, balance, userProfile } = useWallet();
-  const [copied, setCopied] = useState(false);
+  const { t } = useTranslation()
+  const { isConnected, address, balance, userProfile } = useWallet()
+  const [copied, setCopied] = useState(false)
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(address);
-    setCopied(true);
-    toast.success("Address copied!");
-    setTimeout(() => setCopied(false), 2000);
-  };
+    navigator.clipboard.writeText(address)
+    setCopied(true)
+    toast.success('Address copied!')
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   if (!isConnected) {
     return (
@@ -29,13 +29,15 @@ const Settings = () => {
           <span className="text-3xl">🔒</span>
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold font-sans">{t('wallet.connect')}</h2>
+          <h2 className="text-2xl font-bold font-sans">
+            {t('wallet.connect')}
+          </h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             {t('errors.walletRequired')}
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -57,22 +59,26 @@ const Settings = () => {
             <div className="space-y-2">
               <Label className="font-mono uppercase text-xs">Username</Label>
               <div className="p-3 border border-border bg-background rounded font-mono">
-                {userProfile?.username || "Not set"}
+                {userProfile?.username || 'Not set'}
               </div>
             </div>
-            
+
             <div className="space-y-2">
-              <Label className="font-mono uppercase text-xs">Member Since</Label>
+              <Label className="font-mono uppercase text-xs">
+                Member Since
+              </Label>
               <div className="p-3 border border-border bg-background rounded font-mono text-sm">
-                {userProfile?.createdAt 
+                {userProfile?.createdAt
                   ? new Date(userProfile.createdAt).toLocaleDateString()
-                  : "Unknown"}
+                  : 'Unknown'}
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="font-mono uppercase text-xs">Wallet Address</Label>
+            <Label className="font-mono uppercase text-xs">
+              Wallet Address
+            </Label>
             <div className="flex gap-2">
               <Input
                 value={address}
@@ -85,12 +91,21 @@ const Settings = () => {
                 onClick={copyAddress}
                 className="rounded-none"
               >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </Button>
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => window.open(`https://suiscan.xyz/testnet/account/${address}`, '_blank')}
+                onClick={() =>
+                  window.open(
+                    `https://suiscan.xyz/testnet/account/${address}`,
+                    '_blank'
+                  )
+                }
                 className="rounded-none"
               >
                 <ExternalLink className="h-4 w-4" />
@@ -119,14 +134,14 @@ const Settings = () => {
             <span className="font-mono text-sm">Current Network</span>
             <Badge className="rounded-none font-mono">TESTNET</Badge>
           </div>
-          
+
           <div className="text-xs text-muted-foreground font-mono">
             ⚠️ You are on Sui Testnet. Transactions are not real.
           </div>
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default Settings;
+export default Settings

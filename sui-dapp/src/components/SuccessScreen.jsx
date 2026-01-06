@@ -1,13 +1,14 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, ExternalLink } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { CheckCircle2, ExternalLink } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const SuccessScreen = ({ onReset, project, contribution }) => {
   // Support both prop names for backward compatibility
-  const projectData = project || contribution;
-  const txId = projectData?.txDigest || "0x8f...3k9";
-  const shortTxId = txId.length > 20 ? `${txId.slice(0, 8)}...${txId.slice(-6)}` : txId;
+  const projectData = project || contribution
+  const txId = projectData?.txDigest || '0x8f...3k9'
+  const shortTxId =
+    txId.length > 20 ? `${txId.slice(0, 8)}...${txId.slice(-6)}` : txId
 
   return (
     <div className="flex flex-col items-center justify-center py-20 space-y-6 text-center animate-in fade-in zoom-in duration-500">
@@ -19,26 +20,38 @@ const SuccessScreen = ({ onReset, project, contribution }) => {
         <p className="text-muted-foreground max-w-md mx-auto">
           Your project has been recorded on the Sui blockchain.
         </p>
-        
+
         {projectData && (
           <div className="border border-border bg-card/50 p-4 rounded space-y-3 max-w-lg mx-auto">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-mono">TYPE</span>
-              <Badge variant="secondary" className="rounded-none">{projectData.type}</Badge>
+              <span className="text-xs text-muted-foreground font-mono">
+                TYPE
+              </span>
+              <Badge variant="secondary" className="rounded-none">
+                {projectData.type}
+              </Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-mono">TITLE</span>
+              <span className="text-xs text-muted-foreground font-mono">
+                TITLE
+              </span>
               <span className="text-sm font-medium">{projectData.title}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-mono">TX ID</span>
-              <span className="text-xs font-mono text-primary">{shortTxId}</span>
+              <span className="text-xs text-muted-foreground font-mono">
+                TX ID
+              </span>
+              <span className="text-xs font-mono text-primary">
+                {shortTxId}
+              </span>
             </div>
           </div>
         )}
       </div>
       <div className="flex gap-4">
-        <Button onClick={onReset} variant="outline">Create Another</Button>
+        <Button onClick={onReset} variant="outline">
+          Create Another
+        </Button>
         <Link to="/passport">
           <Button>
             View Passport <ExternalLink className="ml-2 h-4 w-4" />
@@ -46,7 +59,7 @@ const SuccessScreen = ({ onReset, project, contribution }) => {
         </Link>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default SuccessScreen;
+export default SuccessScreen

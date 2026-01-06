@@ -8,6 +8,6 @@ const FeatureCard = ({ icon: Icon, title, description }) => (
       {description}
     </p>
   </div>
-);
+)
 
-export default FeatureCard;
+export default FeatureCard

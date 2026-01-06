@@ -3,19 +3,19 @@
  * Reusable loading states for better UX
  */
 
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react'
 
 export const LoadingSpinner = ({ size = 'default', className = '' }) => {
   const sizeClasses = {
     sm: 'h-4 w-4',
     default: 'h-6 w-6',
     lg: 'h-8 w-8',
-  };
+  }
 
   return (
     <Loader2 className={`animate-spin ${sizeClasses[size]} ${className}`} />
-  );
-};
+  )
+}
 
 export const LoadingOverlay = ({ message = 'Loading...' }) => {
   return (
@@ -25,8 +25,8 @@ export const LoadingOverlay = ({ message = 'Loading...' }) => {
         <p className="text-sm text-muted-foreground">{message}</p>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export const LoadingCard = () => {
   return (
@@ -37,8 +37,8 @@ export const LoadingCard = () => {
         <div className="h-4 bg-muted rounded w-5/6"></div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export const LoadingButton = ({ children, isLoading, ...props }) => {
   return (
@@ -52,15 +52,10 @@ export const LoadingButton = ({ children, isLoading, ...props }) => {
         children
       )}
     </button>
-  );
-};
+  )
+}
 
-export const EmptyState = ({ 
-  icon: Icon, 
-  title, 
-  description, 
-  action 
-}) => {
+export const EmptyState = ({ icon: Icon, title, description, action }) => {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
       {Icon && <Icon className="h-12 w-12 text-muted-foreground mb-4" />}
@@ -70,7 +65,7 @@ export const EmptyState = ({
       </p>
       {action}
     </div>
-  );
-};
+  )
+}
 
-export default LoadingSpinner;
+export default LoadingSpinner

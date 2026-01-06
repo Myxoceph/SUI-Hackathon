@@ -1,29 +1,43 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, Loader2, RefreshCw, ThumbsUp, Trophy, Award } from "lucide-react";
-import { useTranslation } from 'react-i18next';
-import ProjectCard from "@/components/ProjectCard";
-import { useWallet } from "@/contexts/WalletContext";
-import { formatAddress, formatBalance } from "@/lib/formatters";
-import React, { useEffect, useState } from "react";
-import { useSuiClient } from "@mysten/dapp-kit";
-import { CONTRACTS } from "@/config/contracts";
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+  ThumbsUp,
+  Trophy,
+} from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import ProjectCard from '@/components/ProjectCard'
+import { useWallet } from '@/contexts/WalletContext'
+import { formatAddress, formatBalance } from '@/lib/formatters'
+import { useEffect, useState } from 'react'
+import { useSuiClient } from '@mysten/dapp-kit'
+import { CONTRACTS } from '@/config/contracts'
 
 const Passport = () => {
-  const { t } = useTranslation();
-  const { isConnected, address, balance, projects, loading, userProfile, refreshData } = useWallet();
-  const client = useSuiClient();
-  const [endorsementsReceived, setEndorsementsReceived] = useState([]);
-  const [loadingEndorsements, setLoadingEndorsements] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [endorsementsGiven, setEndorsementsGiven] = useState([]);
+  const { t } = useTranslation()
+  const {
+    isConnected,
+    address,
+    balance,
+    projects,
+    loading,
+    userProfile,
+    refreshData,
+  } = useWallet()
+  const client = useSuiClient()
+  const [endorsementsReceived, setEndorsementsReceived] = useState([])
+  const [loadingEndorsements, setLoadingEndorsements] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [endorsementsGiven, setEndorsementsGiven] = useState([])
 
   // Fetch endorsements given by this user (EndorsementReceipt NFTs they own)
   const fetchEndorsementsGiven = async () => {
-    if (!address || !isConnected) return;
-    
+    if (!address || !isConnected) return
+
     try {
       // Query EndorsementReceipt objects owned by this user
       const receipts = await client.getOwnedObjects({
@@ -35,48 +49,49 @@ const Passport = () => {
           showContent: true,
           showType: true,
         },
-      });
+      })
 
       const givenEndorsements = receipts.data
         .filter(obj => obj.data?.content)
         .map(obj => {
-          const fields = obj.data.content.fields;
+          const fields = obj.data.content.fields
           return {
             id: obj.data.objectId,
             projectId: fields.project_id,
             endorser: fields.endorser,
             projectOwner: fields.project_owner,
             timestamp: parseInt(fields.timestamp),
-          };
-        });
+          }
+        })
 
-      setEndorsementsGiven(givenEndorsements);
+      setEndorsementsGiven(givenEndorsements)
     } catch (error) {
-      console.error('Error fetching endorsements given:', error);
-      setEndorsementsGiven([]);
+      console.error('Error fetching endorsements given:', error)
+      setEndorsementsGiven([])
     }
-  };
+  }
 
   // Fetch endorsements received by this user's projects
   const fetchEndorsements = async () => {
-    if (!address || !isConnected || projects.length === 0) return;
-    
-    setLoadingEndorsements(true);
+    if (!address || !isConnected || projects.length === 0) return
+
+    setLoadingEndorsements(true)
     try {
       const registry = await client.getObject({
         id: CONTRACTS.PROJECT_REGISTRY,
         options: { showContent: true },
-      });
+      })
 
-      const endorsersTableId = registry.data?.content?.fields?.endorsers?.fields?.id?.id;
+      const endorsersTableId =
+        registry.data?.content?.fields?.endorsers?.fields?.id?.id
       if (!endorsersTableId) {
-        setEndorsementsReceived([]);
-        setLoadingEndorsements(false);
-        return;
+        setEndorsementsReceived([])
+        setLoadingEndorsements(false)
+        return
       }
 
-      const allEndorsements = [];
-      
+      const allEndorsements = []
+
       // For each project owned by this user, fetch the endorsers
       for (const project of projects) {
         try {
@@ -84,20 +99,21 @@ const Passport = () => {
           const endorsersForProject = await client.getDynamicFieldObject({
             parentId: endorsersTableId,
             name: {
-              type: "0x2::object::ID",
+              type: '0x2::object::ID',
               value: project.id,
             },
-          });
+          })
 
-          const innerTableId = endorsersForProject.data?.content?.fields?.value?.fields?.id?.id;
+          const innerTableId =
+            endorsersForProject.data?.content?.fields?.value?.fields?.id?.id
           if (!innerTableId) {
-            continue; // No endorsers for this project yet
+            continue // No endorsers for this project yet
           }
 
           // Get all endorsers from the inner table
           const endorsersList = await client.getDynamicFields({
             parentId: innerTableId,
-          });
+          })
 
           // Add each endorser to the list
           for (const endorserField of endorsersList.data) {
@@ -108,61 +124,63 @@ const Passport = () => {
               projectType: project.type,
               endorser: endorserField.name.value,
               timestamp: Date.now(), // We don't store timestamps in the table
-            });
+            })
           }
-        } catch (err) {
+        } catch {
           // No endorsers yet for this project - expected
-          console.log(`No endorsers found for project ${project.id}`);
+          console.warn(`No endorsers found for project ${project.id}`)
         }
       }
 
-      setEndorsementsReceived(allEndorsements);
+      setEndorsementsReceived(allEndorsements)
     } catch (error) {
-      console.error('Error fetching endorsements:', error);
-      setEndorsementsReceived([]);
+      console.error('Error fetching endorsements:', error)
+      setEndorsementsReceived([])
     } finally {
-      setLoadingEndorsements(false);
+      setLoadingEndorsements(false)
     }
-  };
+  }
 
   // Auto-refresh on mount and periodically
   useEffect(() => {
     if (isConnected) {
-      refreshData();
-      fetchEndorsements();
-      fetchEndorsementsGiven();
-      
+      refreshData()
+      fetchEndorsements()
+      fetchEndorsementsGiven()
+
       // Longer interval - only refresh when needed
       const interval = setInterval(() => {
-        refreshData();
-        fetchEndorsements();
-        fetchEndorsementsGiven();
-      }, 60000); // 1 minute - not aggressive
+        refreshData()
+        fetchEndorsements()
+        fetchEndorsementsGiven()
+      }, 60000) // 1 minute - not aggressive
 
-      return () => clearInterval(interval);
+      return () => clearInterval(interval)
     }
-  }, [isConnected, address]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, address])
 
   // Fetch endorsements when projects change
   useEffect(() => {
     if (projects.length > 0) {
-      fetchEndorsements();
+      fetchEndorsements()
     }
-  }, [projects]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects])
 
   // Calculate total score
   const calculateTotalScore = () => {
     // Base score from endorsements received
-    const endorsementScore = endorsementsReceived.length * 100;
-    
+    const endorsementScore = endorsementsReceived.length * 100
+
     // Project creation score
-    const projectScore = projects.length * 50;
-    
+    const projectScore = projects.length * 50
+
     // Endorsements given score (community contribution)
-    const supportScore = endorsementsGiven.length * 25;
-    
-    return endorsementScore + projectScore + supportScore;
-  };
+    const supportScore = endorsementsGiven.length * 25
+
+    return endorsementScore + projectScore + supportScore
+  }
 
   if (!isConnected) {
     return (
@@ -171,16 +189,18 @@ const Passport = () => {
           <span className="text-3xl">🔒</span>
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold font-sans">{t('wallet.connect')}</h2>
+          <h2 className="text-2xl font-bold font-sans">
+            {t('wallet.connect')}
+          </h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             {t('passport.connectMessage')}
           </p>
         </div>
       </div>
-    );
+    )
   }
 
-  const totalScore = calculateTotalScore();
+  const totalScore = calculateTotalScore()
 
   return (
     <div className="space-y-8">
@@ -193,7 +213,7 @@ const Passport = () => {
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold font-sans">
-                {userProfile?.username || "builder.sui"}
+                {userProfile?.username || 'builder.sui'}
               </h1>
               <Button
                 variant="ghost"
@@ -202,16 +222,23 @@ const Passport = () => {
                 onClick={refreshData}
                 disabled={loading}
               >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+                />
               </Button>
             </div>
             <div className="flex items-center gap-2 text-sm font-mono text-muted-foreground">
               <span>{formatAddress(address)}</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-4 w-4"
-                onClick={() => window.open(`https://suiscan.xyz/testnet/account/${address}`, '_blank')}
+                onClick={() =>
+                  window.open(
+                    `https://suiscan.xyz/testnet/account/${address}`,
+                    '_blank'
+                  )
+                }
               >
                 <ExternalLink className="h-3 w-3" />
               </Button>
@@ -220,25 +247,37 @@ const Passport = () => {
               <Badge variant="secondary" className="rounded-none">
                 {formatBalance(balance)} SUI
               </Badge>
-              <Badge variant="secondary" className="rounded-none">{t('passport.contributor')}</Badge>
+              <Badge variant="secondary" className="rounded-none">
+                {t('passport.contributor')}
+              </Badge>
             </div>
           </div>
         </div>
-        
+
         <div className="flex gap-4">
           <div className="text-right">
-            <div className="text-sm text-muted-foreground font-mono">{t('passport.totalScore')}</div>
-            <div className="text-2xl font-bold">{totalScore.toLocaleString()}</div>
+            <div className="text-sm text-muted-foreground font-mono">
+              {t('passport.totalScore')}
+            </div>
+            <div className="text-2xl font-bold">
+              {totalScore.toLocaleString()}
+            </div>
           </div>
           <div className="w-[1px] bg-border h-12" />
           <div className="text-right">
-            <div className="text-sm text-muted-foreground font-mono">{t('passport.projects')}</div>
+            <div className="text-sm text-muted-foreground font-mono">
+              {t('passport.projects')}
+            </div>
             <div className="text-2xl font-bold">{projects.length}</div>
           </div>
           <div className="w-[1px] bg-border h-12" />
           <div className="text-right">
-            <div className="text-sm text-muted-foreground font-mono">{t('passport.endorsements')}</div>
-            <div className="text-2xl font-bold">{endorsementsReceived.length}</div>
+            <div className="text-sm text-muted-foreground font-mono">
+              {t('passport.endorsements')}
+            </div>
+            <div className="text-2xl font-bold">
+              {endorsementsReceived.length}
+            </div>
           </div>
         </div>
       </div>
@@ -246,20 +285,20 @@ const Passport = () => {
       {/* Content Tabs */}
       <Tabs defaultValue="projects" className="w-full">
         <TabsList className="w-full justify-start border-b border-border rounded-none bg-transparent p-0 h-auto">
-          <TabsTrigger 
-            value="projects" 
+          <TabsTrigger
+            value="projects"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
             {t('passport.projects')}
           </TabsTrigger>
-          <TabsTrigger 
-            value="endorsements" 
+          <TabsTrigger
+            value="endorsements"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
             {t('passport.endorsements')}
           </TabsTrigger>
-          <TabsTrigger 
-            value="achievements" 
+          <TabsTrigger
+            value="achievements"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3 font-mono"
           >
             {t('passport.achievements')}
@@ -291,12 +330,17 @@ const Passport = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  {t('passport.endorsementsReceived', { count: endorsementsReceived.length })}
+                  {t('passport.endorsementsReceived', {
+                    count: endorsementsReceived.length,
+                  })}
                 </p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                {endorsementsReceived.map((endorsement) => (
-                  <Card key={endorsement.id} className="border-border bg-card/50">
+                {endorsementsReceived.map(endorsement => (
+                  <Card
+                    key={endorsement.id}
+                    className="border-border bg-card/50"
+                  >
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-4">
                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -305,12 +349,18 @@ const Passport = () => {
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="font-semibold">{endorsement.projectTitle}</h4>
+                              <h4 className="font-semibold">
+                                {endorsement.projectTitle}
+                              </h4>
                               <p className="text-sm text-muted-foreground">
-                                Endorsed by {formatAddress(endorsement.endorser)}
+                                Endorsed by{' '}
+                                {formatAddress(endorsement.endorser)}
                               </p>
                             </div>
-                            <Badge variant="secondary" className="rounded-none text-xs">
+                            <Badge
+                              variant="secondary"
+                              className="rounded-none text-xs"
+                            >
                               {endorsement.projectType}
                             </Badge>
                           </div>
@@ -319,9 +369,15 @@ const Passport = () => {
                               variant="link"
                               size="sm"
                               className="h-auto p-0 text-xs"
-                              onClick={() => window.open(`https://suiscan.xyz/testnet/object/${endorsement.projectId}`, '_blank')}
+                              onClick={() =>
+                                window.open(
+                                  `https://suiscan.xyz/testnet/object/${endorsement.projectId}`,
+                                  '_blank'
+                                )
+                              }
                             >
-                              {t('common.viewProject')} <ExternalLink className="h-3 w-3 ml-1" />
+                              {t('common.viewProject')}{' '}
+                              <ExternalLink className="h-3 w-3 ml-1" />
                             </Button>
                           </div>
                         </div>
@@ -337,7 +393,9 @@ const Passport = () => {
                 <ThumbsUp className="h-8 w-8 text-muted-foreground" />
               </div>
               <div className="space-y-2">
-                <p className="text-lg font-semibold">{t('passport.noEndorsements')}</p>
+                <p className="text-lg font-semibold">
+                  {t('passport.noEndorsements')}
+                </p>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
                   {t('passport.noEndorsementsDesc')}
                 </p>
@@ -403,7 +461,7 @@ const Passport = () => {
                 rarity: 'epic',
                 unlocked: projects.length >= 10,
               },
-              
+
               // INFLUENCER TIER
               {
                 id: 'first_endorsement',
@@ -513,35 +571,36 @@ const Passport = () => {
                 rarity: 'legendary',
                 unlocked: false,
               },
-            ];
+            ]
 
-            const unlockedCount = achievements.filter(a => a.unlocked).length;
-            const totalXP = achievements.filter(a => a.unlocked).reduce((sum, a) => sum + a.xp, 0);
-            const progressPercentage = Math.round((unlockedCount / achievements.length) * 100);
+            const unlockedCount = achievements.filter(a => a.unlocked).length
+            const totalXP = achievements
+              .filter(a => a.unlocked)
+              .reduce((sum, a) => sum + a.xp, 0)
+            const progressPercentage = Math.round(
+              (unlockedCount / achievements.length) * 100
+            )
 
             // Find rarest unlocked achievement
-            const rarityOrder = { common: 1, rare: 2, epic: 3, legendary: 4 };
-            const unlockedAchievements = achievements.filter(a => a.unlocked);
-            const rarestAchievement = unlockedAchievements.length > 0 
-              ? unlockedAchievements.reduce((rarest, current) => {
-                  if (!rarest) return current;
-                  return rarityOrder[current.rarity] > rarityOrder[rarest.rarity] ? current : rarest;
-                }, unlockedAchievements[0])
-              : null;
-
-            const tierColors = {
-              bronze: 'text-orange-600',
-              silver: 'text-gray-400',
-              gold: 'text-yellow-500',
-              diamond: 'text-blue-400',
-            };
+            const rarityOrder = { common: 1, rare: 2, epic: 3, legendary: 4 }
+            const unlockedAchievements = achievements.filter(a => a.unlocked)
+            const rarestAchievement =
+              unlockedAchievements.length > 0
+                ? unlockedAchievements.reduce((rarest, current) => {
+                    if (!rarest) return current
+                    return rarityOrder[current.rarity] >
+                      rarityOrder[rarest.rarity]
+                      ? current
+                      : rarest
+                  }, unlockedAchievements[0])
+                : null
 
             const rarityColors = {
               common: 'text-gray-500',
               rare: 'text-blue-500',
               epic: 'text-purple-500',
               legendary: 'text-orange-500',
-            };
+            }
 
             const categories = [
               { id: 'all', name: 'All', icon: Trophy },
@@ -549,11 +608,12 @@ const Passport = () => {
               { id: 'influencer', name: 'Influencer', icon: '⭐' },
               { id: 'supporter', name: 'Supporter', icon: '🤝' },
               { id: 'community', name: 'Community', icon: '🌐' },
-            ];
+            ]
 
-            const filteredAchievements = selectedCategory === 'all' 
-              ? achievements 
-              : achievements.filter(a => a.category === selectedCategory);
+            const filteredAchievements =
+              selectedCategory === 'all'
+                ? achievements
+                : achievements.filter(a => a.category === selectedCategory)
 
             return (
               <div className="space-y-6">
@@ -563,8 +623,12 @@ const Passport = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Unlocked</p>
-                          <p className="text-3xl font-bold">{unlockedCount}/{achievements.length}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Unlocked
+                          </p>
+                          <p className="text-3xl font-bold">
+                            {unlockedCount}/{achievements.length}
+                          </p>
                         </div>
                         <Trophy className="h-10 w-10 text-primary" />
                       </div>
@@ -575,7 +639,9 @@ const Passport = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Total XP</p>
+                          <p className="text-sm text-muted-foreground">
+                            Total XP
+                          </p>
                           <p className="text-3xl font-bold">{totalXP}</p>
                         </div>
                         <span className="text-4xl">⚡</span>
@@ -587,13 +653,34 @@ const Passport = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Progress</p>
-                          <p className="text-3xl font-bold">{progressPercentage}%</p>
+                          <p className="text-sm text-muted-foreground">
+                            Progress
+                          </p>
+                          <p className="text-3xl font-bold">
+                            {progressPercentage}%
+                          </p>
                         </div>
                         <div className="relative h-12 w-12">
                           <svg className="transform -rotate-90 h-12 w-12">
-                            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="none" className="text-muted" />
-                            <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="none" className="text-primary" strokeDasharray={`${progressPercentage * 1.25} 125`} />
+                            <circle
+                              cx="24"
+                              cy="24"
+                              r="20"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                              className="text-muted"
+                            />
+                            <circle
+                              cx="24"
+                              cy="24"
+                              r="20"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                              className="text-primary"
+                              strokeDasharray={`${progressPercentage * 1.25} 125`}
+                            />
                           </svg>
                         </div>
                       </div>
@@ -604,19 +691,29 @@ const Passport = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Rarest</p>
+                          <p className="text-sm text-muted-foreground">
+                            Rarest
+                          </p>
                           {rarestAchievement ? (
                             <>
-                              <p className={`text-sm font-bold ${rarityColors[rarestAchievement.rarity]}`}>
+                              <p
+                                className={`text-sm font-bold ${rarityColors[rarestAchievement.rarity]}`}
+                              >
                                 {rarestAchievement.rarity.toUpperCase()}
                               </p>
-                              <p className="text-xs text-muted-foreground mt-1">{rarestAchievement.name}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {rarestAchievement.name}
+                              </p>
                             </>
                           ) : (
-                            <p className="text-sm font-bold text-muted-foreground">None Yet</p>
+                            <p className="text-sm font-bold text-muted-foreground">
+                              None Yet
+                            </p>
                           )}
                         </div>
-                        <span className="text-4xl">{rarestAchievement ? rarestAchievement.icon : '🔒'}</span>
+                        <span className="text-4xl">
+                          {rarestAchievement ? rarestAchievement.icon : '🔒'}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -627,12 +724,18 @@ const Passport = () => {
                   {categories.map(cat => (
                     <Button
                       key={cat.id}
-                      variant={selectedCategory === cat.id ? "default" : "outline"}
+                      variant={
+                        selectedCategory === cat.id ? 'default' : 'outline'
+                      }
                       size="sm"
                       onClick={() => setSelectedCategory(cat.id)}
                       className="gap-2"
                     >
-                      {typeof cat.icon === 'string' ? <span>{cat.icon}</span> : <cat.icon className="h-4 w-4" />}
+                      {typeof cat.icon === 'string' ? (
+                        <span>{cat.icon}</span>
+                      ) : (
+                        <cat.icon className="h-4 w-4" />
+                      )}
                       {cat.name}
                     </Button>
                   ))}
@@ -640,12 +743,12 @@ const Passport = () => {
 
                 {/* Achievements Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredAchievements.map((achievement) => (
-                    <Card 
-                      key={achievement.id} 
+                  {filteredAchievements.map(achievement => (
+                    <Card
+                      key={achievement.id}
                       className={`border-border transition-all hover:scale-105 ${
-                        achievement.unlocked 
-                          ? 'bg-gradient-to-br from-primary/5 to-background shadow-lg' 
+                        achievement.unlocked
+                          ? 'bg-gradient-to-br from-primary/5 to-background shadow-lg'
                           : 'bg-card/30 opacity-60'
                       }`}
                     >
@@ -653,14 +756,21 @@ const Passport = () => {
                         <div className="space-y-4">
                           {/* Icon & Status */}
                           <div className="flex items-start justify-between">
-                            <div className={`text-5xl transition-all ${achievement.unlocked ? 'grayscale-0 scale-110' : 'grayscale'}`}>
+                            <div
+                              className={`text-5xl transition-all ${achievement.unlocked ? 'grayscale-0 scale-110' : 'grayscale'}`}
+                            >
                               {achievement.icon}
                             </div>
                             <div className="flex flex-col gap-1 items-end">
-                              <Badge variant="secondary" className="rounded-none text-xs">
+                              <Badge
+                                variant="secondary"
+                                className="rounded-none text-xs"
+                              >
                                 {achievement.tier.toUpperCase()}
                               </Badge>
-                              <span className={`text-xs font-bold ${rarityColors[achievement.rarity]}`}>
+                              <span
+                                className={`text-xs font-bold ${rarityColors[achievement.rarity]}`}
+                              >
                                 {achievement.rarity.toUpperCase()}
                               </span>
                             </div>
@@ -670,7 +780,9 @@ const Passport = () => {
                           <div>
                             <h4 className="font-bold text-lg mb-1 flex items-center gap-2">
                               {achievement.name}
-                              {achievement.unlocked && <span className="text-green-500">✓</span>}
+                              {achievement.unlocked && (
+                                <span className="text-green-500">✓</span>
+                              )}
                             </h4>
                             <p className="text-sm text-muted-foreground">
                               {achievement.description}
@@ -681,24 +793,32 @@ const Passport = () => {
                           <div className="space-y-2">
                             <div className="flex justify-between text-xs text-muted-foreground">
                               <span>Progress</span>
-                              <span className="font-mono">{achievement.progress}/{achievement.target}</span>
+                              <span className="font-mono">
+                                {achievement.progress}/{achievement.target}
+                              </span>
                             </div>
                             <div className="h-2 bg-muted rounded-full overflow-hidden">
-                              <div 
+                              <div
                                 className={`h-full transition-all duration-500 ${
-                                  achievement.unlocked 
-                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                                  achievement.unlocked
+                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500'
                                     : 'bg-gradient-to-r from-primary/50 to-primary'
                                 }`}
-                                style={{ width: `${(achievement.progress / achievement.target) * 100}%` }}
+                                style={{
+                                  width: `${(achievement.progress / achievement.target) * 100}%`,
+                                }}
                               />
                             </div>
                           </div>
 
                           {/* XP Reward */}
                           <div className="flex items-center justify-between pt-2 border-t border-border">
-                            <span className="text-xs text-muted-foreground">Reward</span>
-                            <span className="text-sm font-bold text-yellow-500">+{achievement.xp} XP</span>
+                            <span className="text-xs text-muted-foreground">
+                              Reward
+                            </span>
+                            <span className="text-sm font-bold text-yellow-500">
+                              +{achievement.xp} XP
+                            </span>
                           </div>
                         </div>
                       </CardContent>
@@ -706,12 +826,12 @@ const Passport = () => {
                   ))}
                 </div>
               </div>
-            );
+            )
           })()}
         </TabsContent>
       </Tabs>
     </div>
-  );
-};
+  )
+}
 
-export default Passport;
+export default Passport

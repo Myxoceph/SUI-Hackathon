@@ -1,54 +1,61 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Trophy, Briefcase, MessageSquare, ExternalLink } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from 'react-i18next';
-import { getAllUsers } from "@/lib/userProfile";
-import { getExplorerUrl } from "@/config/contracts";
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Search,
+  Trophy,
+  Briefcase,
+  MessageSquare,
+  ExternalLink,
+} from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { getAllUsers } from '@/lib/userProfile'
+import { getExplorerUrl } from '@/config/contracts'
 
 function Community() {
-  const { t } = useTranslation();
-  const [users, setUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const navigate = useNavigate();
+  const { t } = useTranslation()
+  const [users, setUsers] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filteredUsers, setFilteredUsers] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    loadUsers()
+  }, [])
 
   useEffect(() => {
     if (searchTerm) {
-      const filtered = users.filter(user => 
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.address.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredUsers(filtered);
+      const filtered = users.filter(
+        user =>
+          user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.address.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      setFilteredUsers(filtered)
     } else {
-      setFilteredUsers(users);
+      setFilteredUsers(users)
     }
-  }, [searchTerm, users]);
+  }, [searchTerm, users])
 
   const loadUsers = () => {
-    const allUsers = getAllUsers();
+    const allUsers = getAllUsers()
     // Sort by reputation/projects count
-    const sorted = allUsers.sort((a, b) => 
-      (b.projectsCount || 0) - (a.projectsCount || 0)
-    );
-    setUsers(sorted);
-    setFilteredUsers(sorted);
-  };
+    const sorted = allUsers.sort(
+      (a, b) => (b.projectsCount || 0) - (a.projectsCount || 0)
+    )
+    setUsers(sorted)
+    setFilteredUsers(sorted)
+  }
 
-  const handleViewProfile = (address) => {
-    navigate(`/passport?address=${address}`);
-  };
+  const handleViewProfile = address => {
+    navigate(`/passport?address=${address}`)
+  }
 
-  const handleSendMessage = (address) => {
-    navigate(`/messages?to=${address}`);
-  };
+  const handleSendMessage = address => {
+    navigate(`/messages?to=${address}`)
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -69,7 +76,7 @@ function Community() {
           <Input
             placeholder={t('explore.search')}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -129,14 +136,19 @@ function Community() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">
-              {searchTerm ? "No users found matching your search" : "No users yet"}
+              {searchTerm
+                ? 'No users found matching your search'
+                : 'No users yet'}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredUsers.map((user) => (
-            <Card key={user.address} className="hover:shadow-lg transition-shadow">
+          {filteredUsers.map(user => (
+            <Card
+              key={user.address}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -162,12 +174,18 @@ function Community() {
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4 py-3 border-y">
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{user.projectsCount || 0}</p>
+                    <p className="text-2xl font-bold">
+                      {user.projectsCount || 0}
+                    </p>
                     <p className="text-xs text-muted-foreground">Projects</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{user.endorsements || 0}</p>
-                    <p className="text-xs text-muted-foreground">Endorsements</p>
+                    <p className="text-2xl font-bold">
+                      {user.endorsements || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Endorsements
+                    </p>
                   </div>
                 </div>
 
@@ -177,7 +195,11 @@ function Community() {
                     <p className="text-sm font-medium mb-2">Skills</p>
                     <div className="flex flex-wrap gap-1">
                       {user.skills.slice(0, 3).map((skill, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
+                        <Badge
+                          key={idx}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {skill}
                         </Badge>
                       ))}
@@ -216,7 +238,7 @@ function Community() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default Community;
+export default Community
