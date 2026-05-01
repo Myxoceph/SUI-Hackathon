@@ -1,3 +1,5 @@
+import tailwindcssAnimate from "tailwindcss-animate";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
@@ -54,7 +56,16 @@ export default {
           "5": "hsl(var(--chart-5))",
         },
       },
+      keyframes: {
+        blink: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
+      },
+      animation: {
+        blink: 'blink 1.2s ease-in-out infinite',
+      },
     },
   },
-  plugins: [],
+  plugins: [tailwindcssAnimate],
 }
