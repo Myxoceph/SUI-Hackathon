@@ -1,5 +1,6 @@
 {
-  "buildCommand": "cd sui-dapp && npm install && npm run build",
+  "installCommand": "cd sui-dapp && npm install",
+  "buildCommand": "cd sui-dapp && npm run build",
   "outputDirectory": "sui-dapp/dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
