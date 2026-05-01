@@ -37,7 +37,6 @@ function RegisterEnokiWallets() {
         providers: {
           google: {
             clientId: googleClientId,
-            redirectUrl: `${window.location.origin}/auth/callback`,
           },
         },
       })
